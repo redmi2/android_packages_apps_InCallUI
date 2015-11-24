@@ -478,6 +478,18 @@ public class VideoCallFragment extends BaseFragment<VideoCallPresenter,
         Log.d(this, "onViewCreated: VideoSurfacesInUse=" + sVideoSurfacesInUse);
 
         mVideoViewsStub = (ViewStub) view.findViewById(R.id.videoCallViewsStub);
+        if (getActivity().getResources().getBoolean(
+                R.bool.config_regional_display_contact_photo_video_call_off)) {
+            ImageView imageView = (ImageView) view
+                    .findViewById(R.id.incomingVideoBack);
+            if (imageView != null) {
+                imageView.setVisibility(View.VISIBLE);
+                CallerInfo info = CallerInfoUtils.buildCallerInfo(getActivity(),
+                        CallList.getInstance().getActiveCall());
+                imageView.setImageResource(info.photoResource == 0 ?
+                        R.drawable.img_no_image : info.photoResource);
+            }
+        }
     }
 
     @Override
