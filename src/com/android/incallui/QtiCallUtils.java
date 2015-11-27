@@ -51,6 +51,7 @@ import org.codeaurora.QtiVideoCallConstants;
 public class QtiCallUtils {
 
     private static String LOG_TAG = "QtiCallUtils";
+    public static int selectType = VideoProfile.STATE_AUDIO_ONLY;
 
     /**
      * Private constructor for QtiCallUtils as we don't want to instantiate this class
@@ -135,6 +136,18 @@ public class QtiCallUtils {
         if (isTtyEnabled(context)) {
             Log.w(LOG_TAG, "Call session modification is allowed only when TTY is off.");
             displayToast(context, R.string.video_call_not_allowed_if_tty_enabled);
+            return;
+        }
+
+        if (context.getResources().getBoolean(
+                R.bool.config_enable_enhance_video_call_ui)) {
+            // selCallType is set to -1 default, if the value is not updated, it is unexpected.
+            if (selectType != -1) {
+                VideoProfile videoProfile = new VideoProfile(selectType);
+                Log.v(LOG_TAG, "Videocall: Enhance videocall: upgrade/downgrade to "
+                        + callTypeToString(selectType));
+                changeToVideoClicked(call, videoProfile);
+            }
             return;
         }
 

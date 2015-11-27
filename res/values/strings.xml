@@ -503,4 +503,13 @@
     <string name="rcs_missdnaddress_string">MissdnAddress:</string>
     <string name="rcs_greeting_string">Gretting:</string>
     <!--End add for RCS-->
+
+    <string name="toast_change_video_call_failed">Can not change to video call, incorrect number format</string>
+
+    <string name="toast_make_video_call_failed">Can not make video call, incorrect number format</string>
+
+    <!-- Add for enhance videocall ui -->
+    <string name="overflowBothCallMenuItemText">Video Call, show me</string>
+    <string name="overflowRXCallMenuItemText">Video Call, hide me</string>
+    <string name="overflowVOCallMenuItemText">Voice Call</string>
 </resources>

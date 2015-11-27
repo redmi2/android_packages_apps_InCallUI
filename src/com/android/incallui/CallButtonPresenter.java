@@ -407,19 +407,59 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
         final boolean showAddParticipant = call.can(
                 QtiVideoCallConstants.CAPABILITY_ADD_PARTICIPANT);
 
+        boolean showRxTx = false;
+        boolean showRx = false;
+        boolean showVolte = false;
+        if (ui.getContext().getResources().getBoolean(
+                R.bool.config_enable_enhance_video_call_ui)) {
+            Log.v(this, "Video State is " + mCall.getVideoState());
+            if (mCall.getVideoState() == VideoProfile.STATE_RX_ENABLED ||
+                    mCall.getVideoState() == VideoProfile.STATE_TX_ENABLED ||
+                    mCall.getVideoState() == VideoProfile.STATE_AUDIO_ONLY) {
+                showRxTx = true;
+                Log.v(this, "showRxTx is true");
+            }
+            if (mCall.getVideoState() == VideoProfile.STATE_BIDIRECTIONAL ||
+                    mCall.getVideoState() == VideoProfile.STATE_AUDIO_ONLY) {
+                showRx = true;
+                Log.v(this, "showRx is true");
+            }
+            if (mCall.getVideoState() == VideoProfile.STATE_RX_ENABLED ||
+                    mCall.getVideoState() == VideoProfile.STATE_TX_ENABLED ||
+                    mCall.getVideoState() == VideoProfile.STATE_BIDIRECTIONAL) {
+                showVolte = true;
+                Log.v(this, "showVolte is true");
+            }
+        }
+
         ui.showButton(BUTTON_AUDIO, true);
         ui.showButton(BUTTON_SWAP, showSwap);
         ui.showButton(BUTTON_HOLD, showHold);
         ui.setHold(isCallOnHold);
         ui.showButton(BUTTON_MUTE, showMute);
         ui.showButton(BUTTON_ADD_CALL, showAddCall);
-        ui.showButton(BUTTON_UPGRADE_TO_VIDEO, showUpgradeToVideo);
+        if (ui.getContext().getResources().getBoolean(
+                R.bool.config_enable_enhance_video_call_ui)) {
+            ui.showButton(BUTTON_UPGRADE_TO_VIDEO, false);
+        } else {
+            ui.showButton(BUTTON_UPGRADE_TO_VIDEO, showUpgradeToVideo);
+        }
         ui.showButton(BUTTON_SWITCH_CAMERA, isVideo);
         ui.showButton(BUTTON_PAUSE_VIDEO, isVideo && !useExt);
         ui.showButton(BUTTON_DIALPAD, !isVideo || useExt);
         ui.showButton(BUTTON_MERGE, showMerge);
         ui.enableAddParticipant(showAddParticipant);
         ui.showButton(BUTTON_RECORD, showRecord);
+        if (ui.getContext().getResources().getBoolean(
+                R.bool.config_enable_enhance_video_call_ui)) {
+            Log.v(this, "Add three new buttons");
+            ui.showButton(BUTTON_RXTX_VIDEO_CALL, showRxTx);
+            ui.showButton(BUTTON_RX_VIDEO_CALL, showRx);
+            ui.showButton(BUTTON_VO_VIDEO_CALL, showVolte);
+            ui.enableAddParticipant(false);
+        } else {
+            ui.enableAddParticipant(showAddParticipant);
+        }
 
         ui.updateButtonStates();
     }
