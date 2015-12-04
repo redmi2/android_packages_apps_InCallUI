@@ -470,4 +470,8 @@
     <!-- Used to inform the user that the note associated with an outgoing call has been sent.
          [CHAR LIMIT=32] -->
     <string name="note_sent">Note sent</string>
+    <string name="call_state_dialing">Dialing</string>
+    <string name="call_state_holding">Holding</string>
+    <string name="call_state_active">Active</string>
+    <string name="call_state_disconnected">Disconnected</string>
 </resources>
