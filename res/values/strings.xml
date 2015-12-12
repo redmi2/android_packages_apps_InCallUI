@@ -476,6 +476,10 @@
 
     <!-- Used to inform the user that the note associated with an outgoing call has been sent.
          [CHAR LIMIT=32] -->
+
+    <!--Begin add for RCS -->
+    <string name="onscreenMoreMenuText">More menu</string>
+    <string name="recording_time_text">Recording</string>
     <string name="note_sent">Note sent</string>
     <string name="call_state_dialing">Dialing</string>
     <string name="call_state_holding">Holding</string>
@@ -495,4 +499,8 @@
     </string-array>
 
     <string name="video_call_downgrade_without_lte_toast">Move out of LTE coverage area downgrade the call.</string>
+    <string name="display_rich_screen">Display rich screen ?</string>
+    <string name="rcs_missdnaddress_string">MissdnAddress:</string>
+    <string name="rcs_greeting_string">Gretting:</string>
+    <!--End add for RCS-->
 </resources>

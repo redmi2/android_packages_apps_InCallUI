@@ -26,6 +26,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.ColorStateList;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -38,13 +41,17 @@ import android.os.Looper;
 import android.content.ContentResolver;
 import android.media.AudioManager;
 import android.provider.Settings;
+import android.os.Message;
+import android.provider.Telephony.Sms;
 import android.telecom.DisconnectCause;
 import android.telecom.VideoProfile;
 import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.view.Gravity;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLayoutChangeListener;
@@ -66,6 +73,12 @@ import android.telecom.CallAudioState;
 import com.android.contacts.common.util.MaterialColorMapUtils.MaterialPalette;
 import com.android.contacts.common.widget.FloatingActionButtonController;
 import com.android.phone.common.animation.AnimUtils;
+
+import com.suntek.mway.rcs.client.api.basic.BasicApi;
+import com.suntek.mway.rcs.client.api.support.SupportApi;
+import com.suntek.rcs.ui.common.GifMovieView;
+import com.suntek.rcs.ui.common.RcsLog;
+import com.suntek.rcs.ui.common.RcsRichScreen;
 
 import java.util.List;
 
@@ -248,6 +261,14 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
     private static final int TTY_MODE_HCO = 2;
 
     private static final String VOLUME_BOOST = "volume_boost";
+    /* Begin add for RCS */
+    private View mSendMessageView;
+    private RcsRichScreen mRcsRichScreen = null;
+    private boolean misEhanceScreenApkInstalled = false;
+    private boolean mIsRcsServiceInstalled = false;
+    private static final String ENHANCE_SCREEN_APK_NAME = "com.cmdm.rcs";
+    private static final String LOG_TAG = "RCS_UI";
+    /* End add for RCS */
 
     @Override
     public CallCardPresenter.CallCardUi getUi() {
@@ -278,6 +299,10 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         getActivity().registerReceiver(recorderStateReceiver, filter);
 
         mInCallActivity = (InCallActivity) getActivity();
+        /* Begin add for RCS */
+        misEhanceScreenApkInstalled = isEnhanceScreenInstalled();
+        mIsRcsServiceInstalled = SupportApi.getInstance().isRcsSupported();
+        /* Begin add for RCS */
         if (mInCallActivity.isCallRecording()) {
             recorderHandler.sendEmptyMessage(MESSAGE_TIMER);
         }
@@ -306,9 +331,19 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         Trace.beginSection(TAG + " onCreate");
         mTranslationOffset =
                 getResources().getDimensionPixelSize(R.dimen.call_card_anim_translate_y_offset);
-        final View view = inflater.inflate(R.layout.call_card_fragment, container, false);
-        Trace.endSection();
-        return view;
+        /* Begin add for RCS */
+        if(!isRcsAvailable()){
+            final View view = inflater.inflate(R.layout.call_card_fragment, container, false);
+            Trace.endSection();
+            return view;
+
+        } else {
+            final View rcsCallCardView = inflater.inflate(
+                    R.layout.rcs_call_card_content, container, false);
+            Trace.endSection();
+            return rcsCallCardView;
+        }
+        /* End add for RCS */
     }
 
     @Override
@@ -343,6 +378,29 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         mCallButtonsContainer = view.findViewById(R.id.callButtonFragment);
         mInCallMessageLabel = (TextView) view.findViewById(R.id.connectionServiceMessage);
         mProgressSpinner = view.findViewById(R.id.progressSpinner);
+
+        /* Begin add for RCS */
+        if (isRcsAvailable()) {
+            TextView rcsmissdnAddress = (TextView)view.findViewById(R.id.missdnaddress);
+            TextView rcsgreeting = (TextView)view.findViewById(R.id.greeting);
+            SurfaceView rcssurface = (SurfaceView)view.findViewById(R.id.surface);
+            ImageView rcsPhoto = (ImageView) view.findViewById(R.id.rcs_photo);
+            GifMovieView rcsGifMovieView = (GifMovieView) view.findViewById(R.id.incallgifview);
+            mRcsRichScreen = new RcsRichScreen(getActivity(),
+                rcsPhoto, rcsgreeting, rcsmissdnAddress, rcsGifMovieView, rcssurface);
+        }
+        if (mIsRcsServiceInstalled) {
+            mSendMessageView = view.findViewById(R.id.sendMessage);
+            mSendMessageView.setOnClickListener(new OnClickListener() {
+                public void onClick(View v) {
+                    getPresenter().sendSmsClicked();
+                }
+            });
+        } else {
+            mSendMessageView = view.findViewById(R.id.sendMessage);
+            mSendMessageView.setVisibility(View.GONE);
+        }
+        /* End add for RCS */
 
         mFloatingActionButtonContainer = view.findViewById(
                 R.id.floating_end_call_action_button_container);
@@ -639,6 +697,17 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
 
         showInternetCallLabel(isSipCall);
 
+        /* Begin add for RCS */
+        if (mRcsRichScreen != null && isRcsAvailable()) {
+            String rcsnumber = null;
+            if(!nameIsNumber){
+                rcsnumber = number;
+            } else {
+                rcsnumber = name;
+            }
+            mRcsRichScreen.setNumber(rcsnumber);
+        }
+        /* End add for RCS */
         setDrawableToImageView(mPhoto, photo, isContactPhotoShown);
     }
 
@@ -802,6 +871,11 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
             }
             return;
         }
+        /* Begin add for RCS */
+        if (mRcsRichScreen != null && isRcsAvailable()) {
+           mRcsRichScreen.updateRichScreenByCallState(state,videoState);
+        }
+        /* End add for RCS */
 
         if (isSubjectShowing) {
             changeCallStateLabel(null);
@@ -1395,7 +1469,9 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
                 updateFabPosition();
             }
         });
-
+        /* Begin add for RCS */
+        misEhanceScreenApkInstalled = isEnhanceScreenInstalled();
+        /* End add for RCS */
         updateColors();
     }
 
@@ -1587,4 +1663,30 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         return mAudioManager.getParameters(VOLUME_BOOST).contains("=on");
     }
 
+    /* Begin add for RCS */
+    private boolean isRcsAvailable() {
+        return SupportApi.getInstance().isRcsSupported()
+                && isRcsOnLine() && misEhanceScreenApkInstalled;
+    }
+
+    private boolean isRcsOnLine() {
+        try {
+            return BasicApi.getInstance().isOnline();
+        } catch (Exception e) {
+            RcsLog.w("Exception:" + e);
+            return false;
+        }
+    }
+    private boolean isEnhanceScreenInstalled() {
+        boolean installed = false;
+        try {
+            ApplicationInfo info = getActivity().getPackageManager().getApplicationInfo(
+                ENHANCE_SCREEN_APK_NAME, PackageManager.GET_PROVIDERS);
+            installed = (info != null);
+        } catch (NameNotFoundException e) {
+            RcsLog.w("NameNotFoundException:" + e);
+        }
+        return installed;
+    }
+    /* End add for RCS */
 }
