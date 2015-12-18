@@ -72,7 +72,8 @@ public class CallButtonFragment
         public static final int BUTTON_MERGE = 8;
         public static final int BUTTON_PAUSE_VIDEO = 9;
         public static final int BUTTON_MANAGE_VIDEO_CONFERENCE = 10;
-        public static final int BUTTON_COUNT = 11;
+        public static final int BUTTON_RECORD = 11;
+        public static final int BUTTON_COUNT = 12;
     }
 
     private SparseIntArray mButtonVisibilityMap = new SparseIntArray(BUTTON_COUNT);
@@ -90,6 +91,7 @@ public class CallButtonFragment
     private ImageButton mOverflowButton;
     private ImageButton mManageVideoCallConferenceButton;
     private ImageButton mAddParticipantButton;
+    private ImageButton mRecordButton;
 
     private PopupMenu mAudioModePopup;
     private boolean mAudioModePopupVisible;
@@ -158,6 +160,8 @@ public class CallButtonFragment
         mManageVideoCallConferenceButton = (ImageButton) parent.findViewById(
             R.id.manageVideoCallConferenceButton);
         mManageVideoCallConferenceButton.setOnClickListener(this);
+        mRecordButton = (ImageButton) parent.findViewById(R.id.recordButton);
+        mRecordButton.setOnClickListener(this);
         return parent;
     }
 
@@ -225,11 +229,21 @@ public class CallButtonFragment
                 break;
             case R.id.overflowButton:
                 if (mOverflowPopup != null) {
+                    updateRecordMenu();
                     mOverflowPopup.show();
                 }
                 break;
             case R.id.manageVideoCallConferenceButton:
                 onManageVideoCallConferenceClicked();
+                break;
+            case R.id.recordButton:
+                if (!((InCallActivity) getActivity()).isCallRecording()) {
+                    ((InCallActivity) getActivity()).startInCallRecorder();
+                    mRecordButton.setBackgroundResource(R.drawable.btn_stop_record);
+                } else {
+                    ((InCallActivity) getActivity()).stopInCallRecorder();
+                    mRecordButton.setBackgroundResource(R.drawable.btn_start_record);
+                }
                 break;
             default:
                 Log.wtf(this, "onClick: unexpected");
@@ -239,6 +253,14 @@ public class CallButtonFragment
         view.performHapticFeedback(
                 HapticFeedbackConstants.VIRTUAL_KEY,
                 HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+    }
+
+    private void updateRecordMenu() {
+        MenuItem item = mOverflowPopup.getMenu().findItem(BUTTON_RECORD);
+        if (item != null) {
+            item.setTitle(((InCallActivity) getActivity()).isCallRecording() ?
+                    R.string.menu_stop_record : R.string.menu_start_record);
+        }
     }
 
     public void updateColors() {
@@ -362,6 +384,7 @@ public class CallButtonFragment
         mOverflowButton.setEnabled(isEnabled);
         mManageVideoCallConferenceButton.setEnabled(isEnabled);
         mAddParticipantButton.setEnabled(isEnabled);
+        mRecordButton.setEnabled(isEnabled);
     }
 
     @Override
@@ -401,6 +424,8 @@ public class CallButtonFragment
                 return mPauseVideoButton;
             case BUTTON_MANAGE_VIDEO_CONFERENCE:
                 return mManageVideoCallConferenceButton;
+            case BUTTON_RECORD:
+                return mRecordButton;
             default:
                 Log.w(this, "Invalid button id");
                 return null;
