@@ -47,7 +47,7 @@ import android.widget.Toast;
 
 import com.android.contacts.common.CallUtil;
 import com.android.contacts.common.util.MaterialColorMapUtils.MaterialPalette;
-import org.codeaurora.ims.qtiims.QtiImsInterfaceUtils;
+import org.codeaurora.ims.utils.QtiImsExtUtils;
 
 /**
  * Fragment for call control buttons
@@ -307,14 +307,14 @@ public class CallButtonFragment
                 QtiCallUtils.displayModifyCallOptions(call, getContext());
                 break;
             case R.id.blindTransfer:
-                getPresenter().callTransferClicked(QtiImsInterfaceUtils.QTI_IMS_BLIND_TRANSFER);
+                getPresenter().callTransferClicked(QtiImsExtUtils.QTI_IMS_BLIND_TRANSFER);
                 break;
             case R.id.assuredTransfer:
-                getPresenter().callTransferClicked(QtiImsInterfaceUtils.QTI_IMS_ASSURED_TRANSFER);
+                getPresenter().callTransferClicked(QtiImsExtUtils.QTI_IMS_ASSURED_TRANSFER);
                 break;
             case R.id.consultativeTransfer:
                 getPresenter().callTransferClicked(
-                        QtiImsInterfaceUtils.QTI_IMS_CONSULTATIVE_TRANSFER);
+                        QtiImsExtUtils.QTI_IMS_CONSULTATIVE_TRANSFER);
                 break;
             default:
                 Log.wtf(this, "onClick: unexpected");
@@ -549,11 +549,11 @@ public class CallButtonFragment
     }
 
     public void enableCallTransfer(int enable) {
-        if ((enable & QtiImsInterfaceUtils.QTI_IMS_CONSULTATIVE_TRANSFER) != 0) {
+        if ((enable & QtiImsExtUtils.QTI_IMS_CONSULTATIVE_TRANSFER) != 0) {
             showButton(BUTTON_TRANSFER_BLIND, true);
             showButton(BUTTON_TRANSFER_ASSURED, true);
             showButton(BUTTON_TRANSFER_CONSULTATIVE, true);
-        } else if ((enable & QtiImsInterfaceUtils.QTI_IMS_BLIND_TRANSFER) != 0) {
+        } else if ((enable & QtiImsExtUtils.QTI_IMS_BLIND_TRANSFER) != 0) {
             showButton(BUTTON_TRANSFER_BLIND, true);
             showButton(BUTTON_TRANSFER_ASSURED, true);
             showButton(BUTTON_TRANSFER_CONSULTATIVE, false);

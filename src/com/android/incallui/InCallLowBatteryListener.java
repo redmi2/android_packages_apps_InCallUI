@@ -41,7 +41,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.List;
 
 import com.android.incallui.InCallPresenter.InCallDetailsListener;
-import org.codeaurora.QtiVideoCallConstants;
+import org.codeaurora.ims.QtiCallConstants;
 
 public class InCallLowBatteryListener implements CallList.Listener, InCallDetailsListener {
 
@@ -151,7 +151,7 @@ public class InCallLowBatteryListener implements CallList.Listener, InCallDetail
 
         final Bundle extras =  (details != null) ? details.getExtras() : null;
         final boolean isLowBattery = (extras != null) ? extras.getBoolean(
-                QtiVideoCallConstants.LOW_BATTERY_EXTRA_KEY, false) : false;
+                QtiCallConstants.LOW_BATTERY_EXTRA_KEY, false) : false;
         Log.i(this, "onDetailsChanged: isLowBattery : " + isLowBattery);
 
         if (isLowBattery && updateCallInMap(call)) {
