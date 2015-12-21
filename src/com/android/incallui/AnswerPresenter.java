@@ -33,6 +33,7 @@ import java.util.List;
 
 import org.codeaurora.ims.qtiims.IQtiImsInterface;
 import org.codeaurora.ims.qtiims.IQtiImsInterfaceListener;
+import org.codeaurora.ims.qtiims.QtiImsInterfaceListenerBaseImpl;
 import org.codeaurora.ims.qtiims.QtiImsInterfaceUtils;
 import org.codeaurora.QtiVideoCallConstants;
 
@@ -94,31 +95,12 @@ public class AnswerPresenter extends Presenter<AnswerPresenter.AnswerUi>
         }
     };
 
-    /* IQtiImsInterfaceListener instance to handle call deflection response */
-    private IQtiImsInterfaceListener imsInterfaceListener = new IQtiImsInterfaceListener.Stub() {
-        public void onSetCallForwardUncondTimer(int status) {
-            /* Not implemented, dummy implementation to avoid compilation errors */
-        }
-
-        public void onGetCallForwardUncondTimer(int startHour, int endHour,
-                int startMinute, int endMinute, int reason, int status,
-                String number, int serviceClass) {
-            /* Not implemented, dummy implementation to avoid compilation errors */
-        }
-
-        public void onUTReqFailed(int errCode, String errString) {
-            /* Not implemented, dummy implementation to avoid compilation errors */
-        }
-
-        public void onGetPacketCount(int status, long packetCount) {
-            /* Not implemented, dummy implementation to avoid compilation errors */
-        }
-
-        public void onGetPacketErrorCount(int status, long packetErrorCount) {
-            /* Not implemented, dummy implementation to avoid compilation errors */
-        }
+    /* QtiImsInterfaceListenerBaseImpl instance to handle call deflection response */
+    private QtiImsInterfaceListenerBaseImpl imsInterfaceListener =
+            new QtiImsInterfaceListenerBaseImpl() {
 
         /* Handles call deflect response */
+        @Override
         public void receiveCallDeflectResponse(int result) {
             Log.w(this, "receiveCallDeflectResponse: " + result);
         }
@@ -182,6 +164,11 @@ public class AnswerPresenter extends Presenter<AnswerPresenter.AnswerUi>
         }
     }
 
+    private boolean checkSubId(int phoneId) {
+        int subId[] = mCalls.getSubId(phoneId);
+        return (subId != null && subId.length > 0);
+    }
+
     @Override
     public void onUiShowing(boolean showing) {
         if (showing) {
@@ -192,12 +179,16 @@ public class AnswerPresenter extends Presenter<AnswerPresenter.AnswerUi>
             // for DSDA.
             for (int i = 0; i < InCallServiceImpl.sPhoneCount; i++) {
                 int[] subId = mCalls.getSubId(i);
-                call = mCalls.getCallWithState(Call.State.INCOMING, 0, subId[0]);
-                if (call == null) {
-                    call = mCalls.getCallWithState(Call.State.CALL_WAITING, 0, subId[0]);
-                }
-                if (call != null) {
-                    processIncomingCall(call);
+                if (checkSubId(i)) {
+                    call = mCalls.getCallWithState(Call.State.INCOMING, 0, subId[0]);
+                    if (call == null) {
+                        call = mCalls.getCallWithState(Call.State.CALL_WAITING, 0, subId[0]);
+                    }
+                    if (call != null) {
+                        processIncomingCall(call);
+                    }
+                } else {
+                    Log.d(TAG, "No valid sub");
                 }
             }
             call = mCalls.getVideoUpgradeRequestCall();
@@ -212,16 +203,20 @@ public class AnswerPresenter extends Presenter<AnswerPresenter.AnswerUi>
             // This happens when back button is pressed while incoming call is still being shown.
             for (int i = 0; i < InCallServiceImpl.sPhoneCount; i++) {
                 int[] subId = mCalls.getSubId(i);
-                Call call = mCalls.getCallWithState(Call.State.INCOMING, 0, subId[0]);
-                if (call == null) {
-                    call = mCalls.getCallWithState(Call.State.CALL_WAITING, 0, subId[0]);
-                }
-                if (call == null) {
-                    call = mCalls.getCallWithState(Call.State.ACTIVE, 0, subId[0]);
-                }
-                if (mCallId[i] != null && call == null) {
-                    mCalls.removeCallUpdateListener(mCallId[i], this);
-                    mCalls.removeActiveSubChangeListener(this);
+                if (checkSubId(i)) {
+                    Call call = mCalls.getCallWithState(Call.State.INCOMING, 0, subId[0]);
+                    if (call == null) {
+                        call = mCalls.getCallWithState(Call.State.CALL_WAITING, 0, subId[0]);
+                    }
+                    if (call == null) {
+                        call = mCalls.getCallWithState(Call.State.ACTIVE, 0, subId[0]);
+                    }
+                    if (mCallId[i] != null && call == null) {
+                        mCalls.removeCallUpdateListener(mCallId[i], this);
+                        mCalls.removeActiveSubChangeListener(this);
+                    }
+                } else {
+                    Log.d(TAG, "No valid sub");
                 }
             }
         }
@@ -271,6 +266,16 @@ public class AnswerPresenter extends Presenter<AnswerPresenter.AnswerUi>
             }
             showAnswerUi(false);
         }
+    }
+
+    @Override
+    public void onLastForwardedNumberChange() {
+        // no-op
+    }
+
+    @Override
+    public void onChildNumberChange() {
+        // no-op
     }
 
     private boolean isVideoUpgradePending(Call call) {
