@@ -247,6 +247,10 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
         InCallUiStateNotifier.getInstance().addListener(this);
         mCurrentVideoState = VideoProfile.STATE_AUDIO_ONLY;
         mCurrentCallState = Call.State.INVALID;
+
+        final InCallPresenter.InCallState inCallState =
+             InCallPresenter.getInstance().getInCallState();
+        onStateChange(inCallState, inCallState, CallList.getInstance());
     }
 
     /**
@@ -625,8 +629,12 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
     }
 
     private void checkForOrientationAllowedChange(Call call) {
-        InCallPresenter.getInstance().setInCallAllowsOrientationChange(
-                OrientationModeHandler.getInstance().getOrientation(call));
+        final int currMode = OrientationModeHandler.getInstance().getCurrentOrientationMode();
+        final int newMode = OrientationModeHandler.getInstance().getOrientation(call);
+
+        if (newMode != currMode) {
+            InCallPresenter.getInstance().setInCallAllowsOrientationChange(newMode);
+        }
     }
 
     /**
@@ -831,8 +839,8 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
 
     /**
      * Determines if the incoming video surface should be shown based on the current videoState and
-     * callState.  The video surface is shown when incoming video is not paused, the call is active,
-     * and video reception is enabled.
+     * callState.  The video surface is shown when incoming video is not paused, the call is active
+     * or dialing and video reception is enabled.
      *
      * @param videoState The current video state.
      * @param callState The current call state.
@@ -841,8 +849,12 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
     public static boolean showIncomingVideo(int videoState, int callState) {
         boolean isPaused = VideoProfile.isPaused(videoState);
         boolean isCallActive = callState == Call.State.ACTIVE;
+        //Show incoming Video for dialing calls to support early media
+        boolean isCallOutgoing = Call.State.isDialing(callState) ||
+                callState == Call.State.CONNECTING;
 
-        return !isPaused && isCallActive && VideoProfile.isReceptionEnabled(videoState);
+        return !isPaused && (isCallActive || isCallOutgoing) &&
+                VideoProfile.isReceptionEnabled(videoState);
     }
 
     /**
@@ -877,12 +889,13 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
         Log.d(this, "onUiShowing, showing = " + showing + " mPrimaryCall = " + mPrimaryCall +
                 " mPreviewSurfaceState = " + mPreviewSurfaceState);
 
+        mIsInBackground = !showing;
+
         if (mPrimaryCall == null || !CallUtils.isActiveVideoCall(mPrimaryCall)) {
             Log.w(this, "onUiShowing, received for non-active video call");
             return;
         }
 
-        mIsInBackground = !showing;
         if (showing) {
             maybeEnableCamera();
         } else if (mPreviewSurfaceState != PreviewSurfaceState.NONE) {
@@ -1166,6 +1179,12 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
         Point size = ui.getScreenSize();
         Log.d("VideoCallPresenter", "setDisplayVideoSize: windowmgr width=" + size.x
                 + " windowmgr height=" + size.y);
+        size = resizeForAspectRatio(size, width, height);
+        ui.setDisplayVideoSize(size.x, size.y);
+    }
+
+    public static Point resizeForAspectRatio(Point inSize, int width, int height) {
+        Point size = new Point(inSize);
         if (size.y * width > size.x * height) {
             // current display height is too much. Correct it
             size.y = (int) (size.x * height / width);
@@ -1173,7 +1192,7 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
             // current display width is too much. Correct it
             size.x = (int) (size.y * width / height);
         }
-        ui.setDisplayVideoSize(size.x, size.y);
+        return size;
     }
 
     /**

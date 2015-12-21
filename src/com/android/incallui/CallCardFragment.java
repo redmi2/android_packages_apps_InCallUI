@@ -47,6 +47,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.contacts.common.util.MaterialColorMapUtils.MaterialPalette;
 import com.android.contacts.common.widget.FloatingActionButtonController;
@@ -117,10 +118,12 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
     private TextView mCallStateLabel;
     private TextView mCallTypeLabel;
     private ImageView mHdAudioIcon;
+    private ImageView mForwardIcon;
     private View mCallNumberAndLabel;
     private ImageView mPhoto;
     private TextView mElapsedTime;
     private Drawable mPrimaryPhotoDrawable;
+    private TextView mCallSubject;
 
     // Container view that houses the entire primary call card, including the call buttons
     private View mPrimaryCallCardContainer;
@@ -236,6 +239,7 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         mCallStateVideoCallIcon = (ImageView) view.findViewById(R.id.videoCallIcon);
         mCallStateLabel = (TextView) view.findViewById(R.id.callStateLabel);
         mHdAudioIcon = (ImageView) view.findViewById(R.id.hdAudioIcon);
+        mForwardIcon = (ImageView) view.findViewById(R.id.forwardIcon);
         mCallNumberAndLabel = view.findViewById(R.id.labelAndNumber);
         mCallTypeLabel = (TextView) view.findViewById(R.id.callTypeLabel);
         mElapsedTime = (TextView) view.findViewById(R.id.elapsedTime);
@@ -286,6 +290,7 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
 
         mPrimaryName.setElegantTextHeight(false);
         mCallStateLabel.setElegantTextHeight(false);
+        mCallSubject = (TextView) view.findViewById(R.id.callSubject);
     }
 
     @Override
@@ -582,7 +587,11 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
             mSecondaryCallInfo.setVisibility(View.VISIBLE);
         }
 
-        updateFabPositionForSecondaryCallInfo();
+        // If secondary info visibility hasn't changed, don't animate. Return.
+        if (wasVisible == isVisible) {
+            return;
+        }
+
         // We need to translate the secondary caller info, but we need to know its position after
         // the layout has occurred so use a {@code ViewTreeObserver}.
         final ViewTreeObserver observer = getView().getViewTreeObserver();
@@ -596,6 +605,10 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
                 // Get the height of the secondary call info now, and then re-hide the view prior
                 // to doing the actual animation.
                 int secondaryHeight = mSecondaryCallInfo.getHeight();
+
+                // Update floating end call button position onPreDraw
+                updateFabPositionForSecondaryCallInfo();
+
                 if (isVisible) {
                     mSecondaryCallInfo.setVisibility(View.GONE);
                 }
@@ -664,7 +677,12 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         boolean showContactPhoto = !VideoCallPresenter.showIncomingVideo(videoState, state);
         mPhoto.setVisibility(showContactPhoto ? View.VISIBLE : View.GONE);
 
-        if (TextUtils.equals(callStateLabel.getCallStateLabel(), mCallStateLabel.getText())) {
+        // Check if the call subject is showing -- if it is, we want to bypass showing the call
+        // state.
+        boolean isSubjectShowing = mCallSubject.getVisibility() == View.VISIBLE;
+
+        if (TextUtils.equals(callStateLabel.getCallStateLabel(), mCallStateLabel.getText()) &&
+                !isSubjectShowing) {
             // Nothing to do if the labels are the same
             if (state == Call.State.ACTIVE || state == Call.State.CONFERENCED) {
                 mCallStateLabel.clearAnimation();
@@ -673,14 +691,22 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
             return;
         }
 
-        // Update the call state label and icon.
-        setCallStateLabel(callStateLabel);
+        if (isSubjectShowing) {
+            changeCallStateLabel(null);
+            callStateIcon = null;
+        } else {
+            // Update the call state label and icon.
+            setCallStateLabel(callStateLabel);
+        }
+
         if (!TextUtils.isEmpty(callStateLabel.getCallStateLabel())) {
             if (state == Call.State.ACTIVE || state == Call.State.CONFERENCED) {
                 mCallStateLabel.clearAnimation();
             } else {
                 mCallStateLabel.startAnimation(mPulseAnimation);
             }
+        } else {
+            mCallStateLabel.clearAnimation();
         }
 
         if (callStateIcon != null) {
@@ -701,10 +727,7 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
                 ((AnimationDrawable) callStateIcon).start();
             }
         } else {
-            Animation callStateIconAnimation = mCallStateIcon.getAnimation();
-            if (callStateIconAnimation != null) {
-                callStateIconAnimation.cancel();
-            }
+            mCallStateIcon.clearAnimation();
 
             // Invoke setAlpha(float) instead of setAlpha(int) to set the view's alpha. This is
             // needed because the pulse animation operates on the view alpha.
@@ -786,6 +809,23 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         mInCallMessageLabel.setText(text);
 
         mInCallMessageLabel.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Sets and shows the call subject if it is not empty.  Hides the call subject otherwise.
+     *
+     * @param callSubject The call subject.
+     */
+    @Override
+    public void setCallSubject(String callSubject) {
+        boolean showSubject = !TextUtils.isEmpty(callSubject);
+
+        mCallSubject.setVisibility(showSubject ? View.VISIBLE : View.GONE);
+        if (showSubject) {
+            mCallSubject.setText(callSubject);
+        } else {
+            mCallSubject.setText(null);
+        }
     }
 
     public boolean isAnimating() {
@@ -941,6 +981,13 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
                 if (TextUtils.isEmpty(callStateLabel)) {
                     callStateLabel = context.getString(R.string.card_title_call_ended);
                 }
+                if (context.getResources().getBoolean(R.bool.def_incallui_clearcode_enabled)) {
+                    String clearText = disconnectCause.getDescription() == null ? ""
+                            : disconnectCause.getDescription().toString();
+                    if (!TextUtils.isEmpty(clearText)) {
+                        Toast.makeText(context, clearText, Toast.LENGTH_SHORT).show();
+                    }
+                }
                 break;
             case Call.State.CONFERENCED:
                 callStateLabel = context.getString(R.string.card_title_conf_call);
@@ -1036,6 +1083,17 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
     }
 
     /**
+     * Changes the visibility of the forward icon.
+     *
+     * @param visible {@code true} if the UI should show the forward icon.
+     */
+    @Override
+    public void showForwardIndicator(boolean visible) {
+        mForwardIcon.setVisibility(visible ? View.VISIBLE : View.GONE);
+    }
+
+
+    /**
      * Changes the visibility of the "manage conference call" button.
      *
      * @param visible Whether to set the button to be visible or not.
@@ -1056,6 +1114,16 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
     }
 
     /**
+     * Determines the current visibility of the call subject.
+     *
+     * @return {@code true} if the subject is visible.
+     */
+    @Override
+    public boolean isCallSubjectVisible() {
+        return mCallSubject.getVisibility() == View.VISIBLE;
+    }
+
+    /**
      * Get the overall InCallUI background colors and apply to call card.
      */
     public void updateColors() {
@@ -1073,6 +1141,7 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
             mPrimaryCallCardContainer.setBackgroundColor(themeColors.mPrimaryColor);
         }
         mCallButtonsContainer.setBackgroundColor(themeColors.mPrimaryColor);
+        mCallSubject.setTextColor(themeColors.mPrimaryColor);
 
         mCurrentThemeColors = themeColors;
     }
@@ -1146,6 +1215,11 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
                 animator.start();
             }
         });
+    }
+
+    @Override
+    public void showNoteSentToast() {
+        Toast.makeText(getContext(), R.string.note_sent, Toast.LENGTH_LONG).show();
     }
 
     public void onDialpadVisibilityChange(boolean isShown) {
