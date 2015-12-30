@@ -151,6 +151,13 @@
             android:contentDescription="@string/onscreenAddParticipant"
             android:visibility="gone" />
 
+        <!-- "Record Call" -->
+        <ImageButton android:id="@+id/recordButton"
+            style="@style/InCallButton"
+            android:background="@drawable/btn_start_record"
+            android:contentDescription="@string/menu_start_record"
+            android:visibility="gone"/>
+
         <!-- "Overflow" -->
         <ImageButton android:id="@+id/overflowButton"
             style="@style/InCallButton"

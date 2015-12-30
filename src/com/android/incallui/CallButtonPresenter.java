@@ -242,6 +242,11 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
     }
 
     public void addParticipantClicked() {
+        if (getUi().getContext().getResources().getBoolean(
+                R.bool.add_multi_participants_enabled)){
+            InCallPresenter.getInstance().sendAddMultiParticipantsIntent();
+            return;
+        }
         InCallPresenter.getInstance().sendAddParticipantIntent();
     }
 
@@ -395,6 +400,9 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
                 QtiCallUtils.hasVoiceCapabilities(call)) &&
                 (callState == Call.State.ACTIVE || callState == Call.State.ONHOLD);
 
+        final boolean showRecord = (callState == Call.State.ACTIVE
+                || callState == Call.State.ONHOLD);
+
         final boolean showMute = call.can(android.telecom.Call.Details.CAPABILITY_MUTE);
         final boolean showAddParticipant = call.can(
                 QtiVideoCallConstants.CAPABILITY_ADD_PARTICIPANT);
@@ -411,6 +419,7 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
         ui.showButton(BUTTON_DIALPAD, !isVideo || useExt);
         ui.showButton(BUTTON_MERGE, showMerge);
         ui.enableAddParticipant(showAddParticipant);
+        ui.showButton(BUTTON_RECORD, showRecord);
 
         ui.updateButtonStates();
     }

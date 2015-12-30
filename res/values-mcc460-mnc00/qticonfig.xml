@@ -27,6 +27,8 @@
   ~ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   -->
 <resources>
+    <!-- Determines UI extensions for video calls should be used. -->
+    <bool name="video_call_use_ext">false</bool>
     <!-- Determine whether emergency calls should be marked. -->
     <bool name="mark_emergency_call">true</bool>
     <!-- Condition to check if home location should be enabled or not. -->
