@@ -180,7 +180,7 @@
 
         <ImageButton android:id="@+id/rxVedioCallButton"
             style="@style/InCallButton"
-            android:background="@drawable/btn_change_to_video"
+            android:background="@drawable/btn_change_to_hm_video"
             android:contentDescription="@string/overflowRXCallMenuItemText"
             android:visibility="gone" />
 
