@@ -141,17 +141,20 @@ public class CallList {
      */
     public void onIncoming(Call call, List<String> textMessages) {
         Log.d(this, "onIncoming - " + call);
-
+        PhoneAccountHandle ph = call.getAccountHandle();
         // Update active subscription from call object. it will be set by
         // Telecomm service for incoming call and whenever active sub changes.
-        if (call.mIsActiveSub) {
-            int sub = Integer.parseInt(call.getAccountHandle().getId());
-            Log.d(this, "onIncoming - sub:" + sub + " mSubId:" + mSubId);
-            if (sub != mSubId) {
-                setActiveSubId(sub);
+        try {
+            if (call.mIsActiveSub && ph != null) {
+                int sub = Integer.parseInt(ph.getId());
+                Log.d(this, "onIncoming - sub:" + sub + " mSubId:" + mSubId);
+                if (sub != mSubId) {
+                    setActiveSubId(sub);
+                }
             }
+        } catch (NumberFormatException e) {
+            Log.w(this,"Sub Id is not a number " + e);
         }
-
         if (updateCallInMap(call)) {
             Log.i(this, "onIncoming - " + call);
         }
