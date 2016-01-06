@@ -29,8 +29,10 @@ import android.telecom.Connection;
 import android.telecom.InCallService.VideoCall;
 import android.telecom.VideoProfile;
 import android.telecom.VideoProfile.CameraCapabilities;
+import android.telephony.TelephonyManager;
 import android.view.Surface;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.android.contacts.common.ContactPhotoManager;
 import com.android.incallui.InCallPresenter.InCallDetailsListener;
@@ -951,6 +953,17 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
     @Override
     public void onVideoQualityChanged(Call call, int videoQuality) {
         // No-op
+        if (mContext.getResources().getBoolean(
+                R.bool.config_regional_noti_move_away_lte_video_call)) {
+            // When the VideoQuality changed, Check the network
+            TelephonyManager teleManager = (TelephonyManager) mContext
+                    .getSystemService(Context.TELEPHONY_SERVICE);
+            if (teleManager.getNetworkType() != TelephonyManager.NETWORK_TYPE_LTE) {
+                Toast.makeText(mContext,
+                        R.string.video_call_downgrade_without_lte_toast,
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     /**
