@@ -118,6 +118,11 @@ public class CallCardPresenter extends Presenter<CallCardPresenter.CallCardUi>
         });
     }
 
+    private boolean isGeocoderLocationNeeded(Call call) {
+          return call.getState() == Call.State.INCOMING ||
+                  call.getState() == Call.State.CONNECTING;
+    }
+
     public void init(Context context, Call call) {
         mContext = Preconditions.checkNotNull(context);
 
@@ -134,7 +139,7 @@ public class CallCardPresenter extends Presenter<CallCardPresenter.CallCardUi>
 
             // start processing lookups right away.
             if (!call.isConferenceCall()) {
-                startContactInfoSearch(call, true, call.getState() == Call.State.INCOMING);
+                startContactInfoSearch(call, true, isGeocoderLocationNeeded(call));
             } else {
                 updateContactEntry(null, true);
             }
@@ -243,7 +248,7 @@ public class CallCardPresenter extends Presenter<CallCardPresenter.CallCardUi>
             CallList.getInstance().addCallUpdateListener(mPrimary.getId(), this);
 
             mPrimaryContactInfo = ContactInfoCache.buildCacheEntryFromCall(mContext, mPrimary,
-                    mPrimary.getState() == Call.State.INCOMING);
+                    isGeocoderLocationNeeded(mPrimary));
             updatePrimaryDisplayInfo();
             maybeStartSearch(mPrimary, true);
             maybeClearSessionModificationState(mPrimary);
@@ -522,7 +527,7 @@ public class CallCardPresenter extends Presenter<CallCardPresenter.CallCardUi>
     private void maybeStartSearch(Call call, boolean isPrimary) {
         // no need to start search for conference calls which show generic info.
         if (call != null && !call.isConferenceCall()) {
-            startContactInfoSearch(call, isPrimary, call.getState() == Call.State.INCOMING);
+            startContactInfoSearch(call, isPrimary, isGeocoderLocationNeeded(call));
         }
     }
 
@@ -786,6 +791,19 @@ public class CallCardPresenter extends Presenter<CallCardPresenter.CallCardUi>
     }
 
     /**
+     * Return the icon to represent the call provider
+     */
+    private Drawable getCallProviderIcon(Call call) {
+        PhoneAccount account = getAccountForCall(call);
+        TelecomManager mgr = InCallPresenter.getInstance().getTelecomManager();
+        if (account != null && mgr.getCallCapablePhoneAccounts().size() > 1) {
+            return account.getIcon().loadDrawable(mContext);
+        }
+        return null;
+    }
+
+
+    /**
      * Returns the label (line of text above the number/name) for any given call.
      * For example, "calling via [Account/Google Voice]" for outgoing calls.
      */
@@ -820,7 +838,7 @@ public class CallCardPresenter extends Presenter<CallCardPresenter.CallCardUi>
             }
         }
 
-        return null;
+        return getCallProviderIcon(mPrimary);
     }
 
     private boolean hasOutgoingGatewayCall() {

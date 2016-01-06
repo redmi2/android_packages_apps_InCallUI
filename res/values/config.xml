@@ -24,4 +24,8 @@
     <!-- The number of milliseconds after which a video call will automatically enter fullscreen
          mode (requires video_call_auto_fullscreen to be true). -->
     <integer name="video_call_auto_fullscreen_timeout">5000</integer>
+
+    <bool name="config_regional_noti_move_away_lte_video_call">false</bool>
+
+    <bool name="config_regional_display_contact_photo_video_call_off">false</bool>
 </resources>

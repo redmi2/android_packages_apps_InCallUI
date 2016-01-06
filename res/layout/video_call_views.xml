@@ -20,11 +20,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <TextureView
-        android:id="@+id/incomingVideo"
-        android:layout_gravity="center"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
+        <ImageView
+            android:id="@+id/incomingVideoBack"
+            android:layout_gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
+        <TextureView
+            android:id="@+id/incomingVideo"
+            android:layout_gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
     <!-- The width and height are replaced at runtime based on the selected camera. -->
     <FrameLayout
         android:id="@+id/previewVideoContainer"
