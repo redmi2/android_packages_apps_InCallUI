@@ -174,4 +174,7 @@
     <string name="camera_off_description" msgid="5689494614359429889">"关闭摄像头"</string>
     <string name="child_number" msgid="7437330400723805538">"通过 <xliff:g id="CHILD_NUMBER">%s</xliff:g>"</string>
     <string name="note_sent" msgid="3548700178238244595">"已发送记事"</string>
+    <string name="volume_boost_notify_enabled">"开启音量增强"</string>
+    <string name="volume_boost_notify_disabled">"关闭音量增强"</string>
+    <string name="volume_boost_notify_unavailable">"有线/蓝牙耳机连接时，音效增强不可用。"</string>
 </resources>
