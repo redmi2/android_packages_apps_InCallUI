@@ -46,6 +46,7 @@ import com.android.incallui.InCallPresenter.InCallState;
 import com.android.incallui.InCallPresenter.InCallStateListener;
 import com.android.incallui.InCallPresenter.IncomingCallListener;
 import com.android.incalluibind.ObjectFactory;
+import com.suntek.rcs.ui.common.utils.RcsSendSmsUtils;
 
 import java.lang.ref.WeakReference;
 
@@ -1061,4 +1062,21 @@ public class CallCardPresenter extends Presenter<CallCardPresenter.CallCardUi>
         void sendAccessibilityAnnouncement();
         void showNoteSentToast();
     }
+
+    /* Begin add for RCS */
+    public void sendSmsClicked() {
+        String number;
+        if (mPrimary != null) {
+            number = mPrimary.getNumber();
+        } else {
+            number = null;
+        }
+        if (number == null) {
+            RcsSendSmsUtils.startSendSmsActivity(mContext);
+        } else {
+            RcsSendSmsUtils.startSendSmsActivity(mContext, new String[] { number });
+        }
+    }
+    /* End add for RCS */
+
 }
