@@ -248,6 +248,7 @@ public class InCallPresenter implements CallList.Listener,
         InCallUiStateNotifier.getInstance().setUp(mContext);
         VideoPauseController.getInstance().setUp(this);
         InCallMessageController.getInstance().setUp(mContext);
+        InCallLowBatteryListener.getInstance().setUp(mContext);
         OrientationModeHandler.getInstance().setUp();
         addDetailsListener(CallSubstateNotifier.getInstance());
         InCallZoomController.getInstance().setUp(mContext);
@@ -273,6 +274,7 @@ public class InCallPresenter implements CallList.Listener,
         VideoPauseController.getInstance().tearDown();
         InCallUiStateNotifier.getInstance().tearDown();
         InCallMessageController.getInstance().tearDown();
+        InCallLowBatteryListener.getInstance().tearDown();
         OrientationModeHandler.getInstance().tearDown();
         removeDetailsListener(CallSubstateNotifier.getInstance());
         InCallZoomController.getInstance().tearDown();

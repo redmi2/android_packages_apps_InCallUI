@@ -20,17 +20,25 @@
 package com.android.incallui;
 
 import com.android.incallui.InCallPresenter.InCallStateListener;
+import com.android.incallui.InCallPresenter.IncomingCallListener;
 import java.util.Objects;
 
 /**
  * Listens to call state changes from {@class InCallStateListener} and keeps track of the current
  * primary call.
  */
-public class PrimaryCallTracker implements InCallStateListener {
+public class PrimaryCallTracker implements InCallStateListener, IncomingCallListener {
 
     private Call mPrimaryCall;
 
     public PrimaryCallTracker() {
+    }
+
+    @Override
+    public void onIncomingCall(InCallPresenter.InCallState oldState,
+            InCallPresenter.InCallState newState, Call call) {
+        // same logic should happen as with onStateChange()
+        onStateChange(oldState, InCallPresenter.InCallState.INCOMING, CallList.getInstance());
     }
 
     /**
