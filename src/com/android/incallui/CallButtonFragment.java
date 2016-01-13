@@ -28,6 +28,8 @@ import android.graphics.drawable.RippleDrawable;
 import android.graphics.drawable.StateListDrawable;
 import android.os.Bundle;
 import android.telecom.CallAudioState;
+import android.telecom.VideoProfile;
+import android.telephony.PhoneNumberUtils;
 import android.util.SparseIntArray;
 import android.view.ContextThemeWrapper;
 import android.view.HapticFeedbackConstants;
@@ -41,7 +43,9 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.PopupMenu.OnDismissListener;
 import android.widget.PopupMenu.OnMenuItemClickListener;
+import android.widget.Toast;
 
+import com.android.contacts.common.CallUtil;
 import com.android.contacts.common.util.MaterialColorMapUtils.MaterialPalette;
 
 /**
@@ -73,7 +77,10 @@ public class CallButtonFragment
         public static final int BUTTON_PAUSE_VIDEO = 9;
         public static final int BUTTON_MANAGE_VIDEO_CONFERENCE = 10;
         public static final int BUTTON_RECORD = 11;
-        public static final int BUTTON_COUNT = 12;
+        public static final int BUTTON_RXTX_VIDEO_CALL = 12;
+        public static final int BUTTON_RX_VIDEO_CALL = 13;
+        public static final int BUTTON_VO_VIDEO_CALL = 14;
+        public static final int BUTTON_COUNT = 15;
     }
 
     private SparseIntArray mButtonVisibilityMap = new SparseIntArray(BUTTON_COUNT);
@@ -92,6 +99,9 @@ public class CallButtonFragment
     private ImageButton mManageVideoCallConferenceButton;
     private ImageButton mAddParticipantButton;
     private ImageButton mRecordButton;
+    private ImageButton mRxtxVideoCallButton;
+    private ImageButton mRxVideoCallButton;
+    private ImageButton mVoVideoCallButton;
 
     private PopupMenu mAudioModePopup;
     private boolean mAudioModePopupVisible;
@@ -162,6 +172,12 @@ public class CallButtonFragment
         mManageVideoCallConferenceButton.setOnClickListener(this);
         mRecordButton = (ImageButton) parent.findViewById(R.id.recordButton);
         mRecordButton.setOnClickListener(this);
+        mRxtxVideoCallButton = (ImageButton) parent.findViewById(R.id.rxtxVideoCallButton);
+        mRxtxVideoCallButton.setOnClickListener(this);
+        mRxVideoCallButton = (ImageButton) parent.findViewById(R.id.rxVedioCallButton);
+        mRxVideoCallButton.setOnClickListener(this);
+        mVoVideoCallButton = (ImageButton) parent.findViewById(R.id.volteCallButton);
+        mVoVideoCallButton.setOnClickListener(this);
         return parent;
     }
 
@@ -187,6 +203,7 @@ public class CallButtonFragment
     public void onClick(View view) {
         int id = view.getId();
         Log.d(this, "onClick(View " + view + ", id " + id + ")...");
+        Call call = CallList.getInstance().getFirstCall();
 
         switch(id) {
             case R.id.audioButton:
@@ -217,6 +234,16 @@ public class CallButtonFragment
                 getPresenter().addParticipantClicked();
                 break;
             case R.id.changeToVideoButton:
+                if (call == null) {
+                    Log.i(this, "Call was null");
+                    return;
+                }
+                if (getResources().getBoolean(R.bool.config_regional_number_patterns_video_call) &&
+                    !CallUtil.isVideoCallNumValid(call.getNumber())) {
+                    Toast.makeText(this.getActivity(),
+                            R.string.toast_change_video_call_failed, Toast.LENGTH_LONG).show();
+                    return;
+                }
                 getPresenter().changeToVideoClicked();
                 break;
             case R.id.switchCameraButton:
@@ -244,6 +271,26 @@ public class CallButtonFragment
                     ((InCallActivity) getActivity()).stopInCallRecorder();
                     mRecordButton.setBackgroundResource(R.drawable.btn_start_record);
                 }
+            case R.id.rxtxVideoCallButton:
+                if (call == null) {
+                    return;
+                }
+                QtiCallUtils.selectType = VideoProfile.STATE_BIDIRECTIONAL;
+                QtiCallUtils.displayModifyCallOptions(call, getContext());
+                break;
+            case R.id.rxVedioCallButton:
+                if (call == null) {
+                    return;
+                }
+                QtiCallUtils.selectType = VideoProfile.STATE_RX_ENABLED;
+                QtiCallUtils.displayModifyCallOptions(call, getContext());
+                break;
+            case R.id.volteCallButton:
+                if (call == null) {
+                    return;
+                }
+                QtiCallUtils.selectType = VideoProfile.STATE_AUDIO_ONLY;
+                QtiCallUtils.displayModifyCallOptions(call, getContext());
                 break;
             default:
                 Log.wtf(this, "onClick: unexpected");
@@ -385,6 +432,9 @@ public class CallButtonFragment
         mManageVideoCallConferenceButton.setEnabled(isEnabled);
         mAddParticipantButton.setEnabled(isEnabled);
         mRecordButton.setEnabled(isEnabled);
+        mRxtxVideoCallButton.setEnabled(isEnabled);
+        mRxVideoCallButton.setEnabled(isEnabled);
+        mVoVideoCallButton.setEnabled(isEnabled);
     }
 
     @Override
@@ -426,6 +476,12 @@ public class CallButtonFragment
                 return mManageVideoCallConferenceButton;
             case BUTTON_RECORD:
                 return mRecordButton;
+            case BUTTON_RXTX_VIDEO_CALL:
+                return mRxtxVideoCallButton;
+            case BUTTON_RX_VIDEO_CALL:
+                return mRxVideoCallButton;
+            case BUTTON_VO_VIDEO_CALL:
+                return mVoVideoCallButton;
             default:
                 Log.w(this, "Invalid button id");
                 return null;
