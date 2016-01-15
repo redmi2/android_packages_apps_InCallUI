@@ -45,6 +45,7 @@
                 android:marqueeRepeatLimit="marquee_forever"
                 android:scrollHorizontally="true"
                 android:singleLine="true"
+                android:visibility="gone"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/call_label_text_size" />
                 <TextView
@@ -57,6 +58,7 @@
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:gravity="center"
+                    android:visibility="gone"
                     android:marqueeRepeatLimit="marquee_forever"
                     android:scrollHorizontally="true"
                     android:singleLine="true"
@@ -78,7 +80,7 @@
                 android:layout_gravity="center" >
             </SurfaceView>
 
-            <com.android.incallui.GifMovieView
+            <com.suntek.rcs.ui.common.GifMovieView
                 android:id="@+id/incallgifview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
