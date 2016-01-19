@@ -208,7 +208,12 @@ public class AnswerFragment extends BaseFragment<AnswerPresenter, AnswerPresente
                 handleDrawableResourceId = R.drawable.ic_incall_video_handle;
                 break;
             case TARGET_SET_FOR_QTI_VIDEO_ACCEPT_REJECT_REQUEST:
-                targetResourceId = R.array.qti_incoming_call_widget_video_request_targets;
+                if (isEnhanceUIEnabled) {
+                    targetResourceId =
+                            R.array.enhance_incoming_call_widget_video_upgrade_request_targets;
+                } else {
+                    targetResourceId = R.array.qti_incoming_call_widget_video_request_targets;
+                }
                 targetDescriptionsResourceId =
                         R.array.qti_incoming_call_widget_video_request_target_descriptions;
                 directionDescriptionsResourceId = R.array.
