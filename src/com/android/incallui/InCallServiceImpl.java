@@ -97,7 +97,7 @@ public class InCallServiceImpl extends InCallService {
     }
 
     static boolean isDsdaEnabled() {
-        if (mTelephonyManager.getMultiSimConfiguration()
+        if (TelephonyManager.getDefault().getMultiSimConfiguration()
                 == TelephonyManager.MultiSimVariants.DSDA) {
             return true;
         }
