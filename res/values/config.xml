@@ -33,4 +33,7 @@
 
     <!-- When set to true, this config enables enhance videocall ui -->
     <bool name="config_enable_enhance_video_call_ui">false</bool>
+
+    <!-- When set to false,this config disable volume boost function when calling-->
+    <bool name="config_enable_volume_boost">true</bool>
 </resources>

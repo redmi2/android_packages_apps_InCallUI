@@ -1624,7 +1624,8 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
     private void updateVbByCall(int state) {
         updateVbButton();
 
-        if (Call.State.ACTIVE == state) {
+        if (Call.State.ACTIVE == state &&
+                getResources().getBoolean(R.bool.config_enable_volume_boost)) {
             mVbButton.setVisibility(View.VISIBLE);
         } else if (Call.State.DISCONNECTED == state) {
             if (!CallList.getInstance().hasLiveCall()
