@@ -271,6 +271,7 @@ public class CallButtonFragment
                     ((InCallActivity) getActivity()).stopInCallRecorder();
                     mRecordButton.setBackgroundResource(R.drawable.btn_start_record);
                 }
+                break;
             case R.id.rxtxVideoCallButton:
                 if (call == null) {
                     return;
