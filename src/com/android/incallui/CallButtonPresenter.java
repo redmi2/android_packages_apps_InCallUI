@@ -401,7 +401,7 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
                 (callState == Call.State.ACTIVE || callState == Call.State.ONHOLD);
 
         final boolean showRecord = (callState == Call.State.ACTIVE
-                || callState == Call.State.ONHOLD);
+                || callState == Call.State.ONHOLD) && !call.isEmergencyCall();
 
         final boolean showMute = call.can(android.telecom.Call.Details.CAPABILITY_MUTE);
         final boolean showAddParticipant = call.can(
