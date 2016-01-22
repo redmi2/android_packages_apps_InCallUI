@@ -381,6 +381,9 @@ public class CallList {
             result = getFirstCallWithState(Call.State.ACTIVE);
         }
         if (result == null) {
+            result = getFirstCallWithState(Call.State.ONHOLD);
+        }
+        if (result == null) {
             result = getDisconnectingCall();
         }
         if (result == null) {
