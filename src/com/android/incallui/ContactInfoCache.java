@@ -207,6 +207,7 @@ public class ContactInfoCache implements ContactsAsyncHelper.OnImageLoadComplete
         final CallerInfo callerInfo = CallerInfoUtils.getCallerInfoForCall(
                 mContext, call, new FindInfoCallback(isIncoming));
 
+        // This function will do twice, maybe we can delete it.
         findInfoQueryComplete(call, callerInfo, isIncoming, false);
     }
 
@@ -323,7 +324,8 @@ public class ContactInfoCache implements ContactsAsyncHelper.OnImageLoadComplete
     private void findInfoQueryComplete(Call call, CallerInfo callerInfo, boolean isIncoming,
             boolean didLocalLookup) {
         if(TextUtils.isEmpty(callerInfo.name) && !callerInfo.contactExists
-                && callerInfo.callerInfoContactSearch) {
+                && callerInfo.callerInfoContactSearch
+                        && (isFdnContactSearchEnabled() || isSdnContactSearchEnabled())) {
            getCallerInfoForFdnSdn(call, callerInfo, isIncoming, didLocalLookup);
            return;
         }
