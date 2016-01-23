@@ -38,6 +38,7 @@ import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 
+import com.android.contacts.common.GeoUtil;
 import com.android.contacts.common.util.BitmapUtil;
 import com.android.incallui.ContactInfoCache.ContactCacheEntry;
 import com.android.incallui.ContactInfoCache.ContactInfoCacheCallback;
@@ -388,11 +389,8 @@ public class StatusBarNotifier implements InCallPresenter.InCallStateListener,
         if (TextUtils.isEmpty(contactInfo.name)) {
             String contactNumberDisplayed = TextUtils.isEmpty(contactInfo.number) ?
                     "" : contactInfo.number.toString();
-            if (mContext.getResources().
-                    getBoolean(R.bool.display_home_location_on_statusbar) &&
-                    !TextUtils.isEmpty(contactInfo.location)) {
-                contactNumberDisplayed =  contactNumberDisplayed + " " + contactInfo.location;
-            }
+            String location_info = GeoUtil.getGeocodedLocationFor(mContext, contactNumberDisplayed);
+            contactNumberDisplayed =  contactNumberDisplayed + " " + location_info;
             return TextUtils.isEmpty(contactNumberDisplayed) ? null
                     : BidiFormatter.getInstance().unicodeWrap(
                     contactNumberDisplayed, TextDirectionHeuristics.LTR);

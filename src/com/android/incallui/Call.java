@@ -23,6 +23,7 @@ import android.content.Context;
 import android.hardware.camera2.CameraCharacteristics;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.os.Trace;
 import android.telecom.Connection;
 import android.telecom.DisconnectCause;
@@ -272,6 +273,8 @@ public class Call {
      * subject.
      */
     private boolean mIsCallSubjectSupported;
+
+    private long mBaseChronometerTime = 0;
 
     /**
      * Used only to create mock calls for testing
@@ -721,6 +724,17 @@ public class Call {
 
     public int getSessionModificationState() {
         return mSessionModificationState;
+    }
+
+    public void triggerCalcBaseChronometerTime() {
+        if (mBaseChronometerTime <= 0) {
+            mBaseChronometerTime = getConnectTimeMillis() - System.currentTimeMillis()
+                    + SystemClock.elapsedRealtime();
+        }
+    }
+
+    public long getCallDuration() {
+        return SystemClock.elapsedRealtime() - mBaseChronometerTime;
     }
 
     @Override
