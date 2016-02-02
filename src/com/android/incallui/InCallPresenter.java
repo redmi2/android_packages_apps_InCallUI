@@ -1517,6 +1517,10 @@ public class InCallPresenter implements CallList.Listener,
                 String tmp = childCallIdList.get(k);
                 String number = CallList.getInstance()
                         .getCallById(tmp).getNumber();
+                if (number.contains(";")){
+                    String[] temp = number.split(";");
+                    number = temp[0];
+                }
                 sb.append(number).append(";");
             }
             Log.d(this, "sendAddMultiParticipantsIntent, numbers " + sb.toString());
