@@ -137,4 +137,16 @@
     <string name="low_battery_downgrade_to_voice_msg">Do you want to convert video call to voice call?</string>
     <!-- Message text of the low battery alert dialog in cases video call doesn't have downgrade capabilities -->
     <string name="low_battery_hangup_msg">Do you want to hangup the call?</string>
+
+    <!-- Description of the call transfer related strings [CHAR LIMIT=NONE] -->
+    <string name="qti_ims_transfer_num_error">Number not set. Provide the number via IMS settings and retry.</string>
+    <string name="qti_ims_transfer_request_error">Call Transfer request had failed.</string>
+    <string name="qti_ims_transfer_request_success">Call Transfer request is successful.</string>
+    <!-- Text for the onscreen "blind transfer" button -->
+    <string name="qti_ims_onscreenBlindTransfer">Blind Transfer</string>
+    <!-- Text for the onscreen "assured transfer" button -->
+    <string name="qti_ims_onscreenAssuredTransfer">Assured Transfer</string>
+    <!-- Text for the onscreen "consultative transfer" button -->
+    <string name="qti_ims_onscreenConsultativeTransfer">Consultative Transfer</string>
+
 </resources>

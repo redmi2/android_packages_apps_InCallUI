@@ -19,12 +19,17 @@ package com.android.incallui;
 import com.android.contacts.common.CallUtil;
 import com.android.contacts.common.testing.NeededForTesting;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.hardware.camera2.CameraCharacteristics;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.SystemClock;
 import android.os.Trace;
+import android.os.RemoteException;
 import android.telecom.Connection;
 import android.telecom.DisconnectCause;
 import android.telecom.GatewayInfo;
@@ -41,6 +46,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+
+import org.codeaurora.ims.qtiims.IQtiImsInterface;
+import org.codeaurora.ims.qtiims.IQtiImsInterfaceListener;
+import org.codeaurora.ims.qtiims.QtiImsInterfaceListenerBaseImpl;
+import org.codeaurora.ims.qtiims.QtiImsInterfaceUtils;
 
 /**
  * Describes a single call and its state.
@@ -132,6 +142,78 @@ public class Call {
         public static final int RECEIVED_UPGRADE_TO_VIDEO_REQUEST = 3;
         public static final int UPGRADE_TO_VIDEO_REQUEST_TIMED_OUT = 4;
         public static final int REQUEST_REJECTED = 5;
+    }
+
+    /* QtiImsInterfaceListenerBaseImpl instance to handle call transfer response */
+    private QtiImsInterfaceListenerBaseImpl mQtiImsInterfaceListener =
+            new QtiImsInterfaceListenerBaseImpl() {
+
+        /* Handles call transfer response */
+        @Override
+        public void receiveCallTransferResponse(int result) {
+            Log.w(this, "receiveCallTransferResponse: " + result);
+        }
+    };
+
+    public static class QtiImsInterfaceImpl {
+        private static final String IMS_SERVICE_PKG_NAME = "org.codeaurora.ims";
+        private IQtiImsInterface mQtiImsInterface = null;
+        private boolean mImsServiceBound = false;
+        private Context mContext = null;
+
+        /* Service connection bound to IQtiImsInterface */
+        private ServiceConnection mConnection = new ServiceConnection() {
+
+            /* Below API gets invoked when connection to ImsService is established */
+            public void onServiceConnected(ComponentName className, IBinder service) {
+                /* Retrieve the IQtiImsInterface */
+                mQtiImsInterface = IQtiImsInterface.Stub.asInterface(service);
+            }
+
+            /* Below API gets invoked when connection to ImsService is disconnected */
+            public void onServiceDisconnected(ComponentName className) {
+                /* Reset the IQtiImsInterface */
+                mQtiImsInterface = null;
+            }
+        };
+
+        public boolean startQtiImsInterface(Context context) {
+            if (mImsServiceBound) {
+                Log.d(this, "StartQtiImsInterface : interface is already initiated");
+            } else {
+                Intent intent = new Intent(IQtiImsInterface.class.getName());
+                intent.setPackage(IMS_SERVICE_PKG_NAME);
+                mImsServiceBound = context.bindService(intent, mConnection,
+                        Context.BIND_AUTO_CREATE);
+                Log.d(this, "StartQtiImsInterface : " + (mImsServiceBound?"yes":"failed"));
+                if (mImsServiceBound) {
+                    mContext = context;
+                }
+            }
+            return mImsServiceBound;
+        }
+
+        public void stopQtiImsInterface() {
+            if (mImsServiceBound && (mContext != null)) {
+                Log.d(this, "stopQtiImsInterface: UnBinding IQtiImsInterface...");
+
+                /* When disconnecting, reset the globals variables */
+                mImsServiceBound = false;
+                mContext.unbindService(mConnection);
+                mContext = null;
+            } else {
+                Log.d(this, "stopQtiImsInterface: Service Bound - " + mImsServiceBound +
+                        " or contex is null");
+            }
+        }
+
+        /**
+         * Retrieve QtiImsInterface
+         * Returns QtiImsInterface if available, null otherwise.
+         */
+        public IQtiImsInterface getQtiImsInterface() {
+            return mImsServiceBound? mQtiImsInterface : null;
+        }
     }
 
     public static class VideoSettings {
@@ -276,6 +358,8 @@ public class Call {
 
     private long mBaseChronometerTime = 0;
 
+    private QtiImsInterfaceImpl mQtiImsInterfaceImpl = new QtiImsInterfaceImpl();
+
     /**
      * Used only to create mock calls for testing
      */
@@ -312,6 +396,8 @@ public class Call {
         updateFromTelecommCall();
         if (oldState != getState() && getState() == Call.State.DISCONNECTED) {
             CallList.getInstance().onDisconnect(this);
+            /* Disconnect the QTI IMS service */
+            mQtiImsInterfaceImpl.stopQtiImsInterface();
         } else {
             CallList.getInstance().onUpdate(this);
         }
@@ -735,6 +821,36 @@ public class Call {
 
     public long getCallDuration() {
         return SystemClock.elapsedRealtime() - mBaseChronometerTime;
+    }
+
+    public int getTransferCapabilities() {
+        Bundle extras = getExtras();
+        return (extras == null)? 0 :
+                extras.getInt(QtiImsInterfaceUtils.QTI_IMS_TRANSFER_EXTRA_KEY, 0);
+    }
+
+    public boolean startQtiImsInterface(Context context) {
+        return mQtiImsInterfaceImpl.startQtiImsInterface(context);
+    }
+
+    public boolean sendCallTransferRequest(int type, String number) {
+        IQtiImsInterface mInterface = mQtiImsInterfaceImpl.getQtiImsInterface();
+        if (mInterface == null) {
+            Log.d(this, "sendCallTransferRequest: NO interface type-" + type +
+                    " number: " + number);
+            return false;
+        }
+
+        int phoneId = SubscriptionManager.getPhoneId(getSubId());
+        try {
+            Log.d(this, "sendCallTransferRequest: Phoneid-" + phoneId + " type-" + type +
+                    " number: " + number);
+            mInterface.sendCallTransferRequest(phoneId, type, number, mQtiImsInterfaceListener);
+        } catch (RemoteException e) {
+            Log.e(this, "sendCallDeflectRequest exception " + e);
+            return false;
+        }
+        return true;
     }
 
     @Override
