@@ -55,6 +55,10 @@ public class CallUtils {
         return CallUtils.isVideoCall(call) && call.getState() == Call.State.ACTIVE;
     }
 
+    public static boolean isActiveUnPausedVideoCall(Call call) {
+                return isActiveVideoCall(call) && !VideoProfile.isPaused(call.getVideoState());
+    }
+
     public static boolean isOutgoingVideoCall(Call call) {
         if (!CallUtils.isVideoCall(call)) {
             return false;

@@ -35,4 +35,6 @@
     <bool name="config_call_session_event_toast">false</bool>
     <!-- Config to show/hide data usage toast -->
     <bool name="config_display_data_usage_toast">false</bool>
+    <!-- Config to enable add multi participants -->
+    <bool name="add_multi_participants_enabled">true</bool>
 </resources>

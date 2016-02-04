@@ -210,6 +210,11 @@ public class QtiCallUtils {
         return "";
     }
 
+    public static void downgradeToVoiceCall(final Call call) {
+        final VideoProfile videoProfile = new VideoProfile(VideoProfile.STATE_AUDIO_ONLY);
+        changeToVideoClicked(call, videoProfile);
+    }
+
     /**
      * Sends a session modify request to the telephony framework
      */
