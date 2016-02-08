@@ -81,10 +81,11 @@ public class CallButtonFragment
         public static final int BUTTON_RXTX_VIDEO_CALL = 12;
         public static final int BUTTON_RX_VIDEO_CALL = 13;
         public static final int BUTTON_VO_VIDEO_CALL = 14;
-        public static final int BUTTON_TRANSFER_BLIND = 15;
-        public static final int BUTTON_TRANSFER_ASSURED = 16;
-        public static final int BUTTON_TRANSFER_CONSULTATIVE = 17;
-        public static final int BUTTON_COUNT = 18;
+        public static final int BUTTON_ADD_PARTICIPANT = 15;
+        public static final int BUTTON_TRANSFER_BLIND = 16;
+        public static final int BUTTON_TRANSFER_ASSURED = 17;
+        public static final int BUTTON_TRANSFER_CONSULTATIVE = 18;
+        public static final int BUTTON_COUNT = 19;
     }
 
     private SparseIntArray mButtonVisibilityMap = new SparseIntArray(BUTTON_COUNT);
@@ -512,6 +513,8 @@ public class CallButtonFragment
                 return mRxVideoCallButton;
             case BUTTON_VO_VIDEO_CALL:
                 return mVoVideoCallButton;
+            case BUTTON_ADD_PARTICIPANT:
+                return mAddParticipantButton;
             case BUTTON_TRANSFER_BLIND:
                 return mBlindTransferButton;
             case BUTTON_TRANSFER_ASSURED:
@@ -542,10 +545,6 @@ public class CallButtonFragment
     @Override
     public void setVideoPaused(boolean isPaused) {
         mPauseVideoButton.setSelected(isPaused);
-    }
-
-    public void enableAddParticipant(boolean show) {
-        mAddParticipantButton.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
     public void enableCallTransfer(int enable) {
