@@ -326,11 +326,7 @@ public class StatusBarNotifier implements InCallPresenter.InCallStateListener,
             addDismissAction(builder);
             if (call.isVideoCall(mContext)) {
                 addVoiceAction(builder);
-                if (QtiCallUtils.useExt(mContext)) {
-                    addMoreAction(builder);
-                } else {
-                    addVideoCallAction(builder);
-                }
+                addVideoCallAction(builder);
             } else {
                 addAnswerAction(builder);
             }
@@ -566,16 +562,6 @@ public class StatusBarNotifier implements InCallPresenter.InCallStateListener,
         builder.addAction(R.drawable.ic_videocam,
                 mContext.getText(R.string.notification_action_answer_video),
                 answerVideoPendingIntent);
-    }
-
-    private void addMoreAction(Notification.Builder builder) {
-        Log.i(this, "Will show \"more\" action in the incoming call Notification");
-
-        PendingIntent answerMorePendingIntent = createNotificationPendingIntent(
-                mContext, NotificationBroadcastReceiver.ACTION_ANSWER_MORE_INCOMING_CALL);
-        builder.addAction(R.drawable.ic_more,
-                mContext.getText(R.string.notification_action_answer_more),
-                answerMorePendingIntent);
     }
 
     private void addVoiceAction(Notification.Builder builder) {

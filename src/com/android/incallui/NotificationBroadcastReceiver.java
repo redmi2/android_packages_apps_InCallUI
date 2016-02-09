@@ -45,8 +45,6 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
             "com.android.incallui.ACTION_ACCEPT_VIDEO_UPGRADE_REQUEST";
     public static final String ACTION_DECLINE_VIDEO_UPGRADE_REQUEST =
             "com.android.incallui.ACTION_DECLINE_VIDEO_UPGRADE_REQUEST";
-    public static final String ACTION_ANSWER_MORE_INCOMING_CALL =
-            "com.android.incallui.ACTION_ANSWER_MORE_INCOMING_CALL";
     public static final String ADD_CALL_MODE_KEY = "add_call_mode";
     public static final String ADD_PARTICIPANT_KEY = "add_participant";
 
@@ -72,8 +70,6 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
             inCallPresenter.bringToForeground(false);
         } else if (action.equals(ACTION_DECLINE_VIDEO_UPGRADE_REQUEST)) {
             InCallPresenter.getInstance().declineUpgradeRequest(context);
-        } else if (action.equals(ACTION_ANSWER_MORE_INCOMING_CALL)) {
-            InCallPresenter.getInstance().bringToForeground(false);
         }
     }
 
