@@ -44,6 +44,8 @@ import com.android.incallui.InCallVideoCallCallbackNotifier.VideoEventListener;
 
 import java.util.Objects;
 
+import org.codeaurora.ims.QtiCallConstants;
+
 /**
  * Logic related to the {@link VideoCallFragment} and for managing changes to the video calling
  * surfaces based on other user interface events and incoming events from the
@@ -632,7 +634,7 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
         final int newMode = OrientationModeHandler.getInstance().getOrientation(call);
 
         if (newMode != currMode) {
-            InCallPresenter.getInstance().setInCallAllowsOrientationChange(newMode);
+            InCallPresenter.getInstance().setInCallAllowsOrientationChange(call, newMode);
         }
     }
 
@@ -1095,11 +1097,17 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
         if (previewDimensions == null) {
             return;
         }
-        Log.d(this, "onDeviceOrientationChanged: orientation=" + orientation + " size: "
-                + previewDimensions);
-        changePreviewDimensions(previewDimensions.x, previewDimensions.y);
+        final int currMode = OrientationModeHandler.getInstance().getCurrentOrientationMode();
+        final boolean isCvoEnabled = (currMode != QtiCallConstants.ORIENTATION_MODE_PORTRAIT &&
+                currMode != QtiCallConstants.ORIENTATION_MODE_LANDSCAPE) ? true : false;
 
-        ui.setPreviewRotation(mDeviceOrientation);
+        Log.i(this, "onDeviceOrientationChanged: orientation=" + orientation + " size: "
+                + previewDimensions + "currMode: " + currMode);
+        if (isCvoEnabled) {
+            changePreviewDimensions(previewDimensions.x, previewDimensions.y);
+        }
+
+        ui.setPreviewRotation(isCvoEnabled ? (mDeviceOrientation) : (2 * mDeviceOrientation));
     }
 
     /**
