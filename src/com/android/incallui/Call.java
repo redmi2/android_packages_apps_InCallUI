@@ -47,10 +47,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-import org.codeaurora.ims.qtiims.IQtiImsInterface;
-import org.codeaurora.ims.qtiims.IQtiImsInterfaceListener;
-import org.codeaurora.ims.qtiims.QtiImsInterfaceListenerBaseImpl;
-import org.codeaurora.ims.qtiims.QtiImsInterfaceUtils;
+import org.codeaurora.ims.internal.IQtiImsExt;
+import org.codeaurora.ims.internal.IQtiImsExtListener;
+import org.codeaurora.ims.QtiImsExtListenerBaseImpl;
+import org.codeaurora.ims.utils.QtiImsExtUtils;
 
 /**
  * Describes a single call and its state.
@@ -144,9 +144,9 @@ public class Call {
         public static final int REQUEST_REJECTED = 5;
     }
 
-    /* QtiImsInterfaceListenerBaseImpl instance to handle call transfer response */
-    private QtiImsInterfaceListenerBaseImpl mQtiImsInterfaceListener =
-            new QtiImsInterfaceListenerBaseImpl() {
+    /* QtiImsExtListenerBaseImpl instance to handle call transfer response */
+    private QtiImsExtListenerBaseImpl mQtiImsInterfaceListener =
+            new QtiImsExtListenerBaseImpl() {
 
         /* Handles call transfer response */
         @Override
@@ -157,22 +157,22 @@ public class Call {
 
     public static class QtiImsInterfaceImpl {
         private static final String IMS_SERVICE_PKG_NAME = "org.codeaurora.ims";
-        private IQtiImsInterface mQtiImsInterface = null;
+        private IQtiImsExt mQtiImsInterface = null;
         private boolean mImsServiceBound = false;
         private Context mContext = null;
 
-        /* Service connection bound to IQtiImsInterface */
+        /* Service connection bound to IQtiImsExt */
         private ServiceConnection mConnection = new ServiceConnection() {
 
             /* Below API gets invoked when connection to ImsService is established */
             public void onServiceConnected(ComponentName className, IBinder service) {
-                /* Retrieve the IQtiImsInterface */
-                mQtiImsInterface = IQtiImsInterface.Stub.asInterface(service);
+                /* Retrieve the IQtiImsExt */
+                mQtiImsInterface = IQtiImsExt.Stub.asInterface(service);
             }
 
             /* Below API gets invoked when connection to ImsService is disconnected */
             public void onServiceDisconnected(ComponentName className) {
-                /* Reset the IQtiImsInterface */
+                /* Reset the IQtiImsExt */
                 mQtiImsInterface = null;
             }
         };
@@ -181,7 +181,7 @@ public class Call {
             if (mImsServiceBound) {
                 Log.d(this, "StartQtiImsInterface : interface is already initiated");
             } else {
-                Intent intent = new Intent(IQtiImsInterface.class.getName());
+                Intent intent = new Intent(IQtiImsExt.class.getName());
                 intent.setPackage(IMS_SERVICE_PKG_NAME);
                 mImsServiceBound = context.bindService(intent, mConnection,
                         Context.BIND_AUTO_CREATE);
@@ -195,7 +195,7 @@ public class Call {
 
         public void stopQtiImsInterface() {
             if (mImsServiceBound && (mContext != null)) {
-                Log.d(this, "stopQtiImsInterface: UnBinding IQtiImsInterface...");
+                Log.d(this, "stopQtiImsInterface: UnBinding IQtiImsExt...");
 
                 /* When disconnecting, reset the globals variables */
                 mImsServiceBound = false;
@@ -211,7 +211,7 @@ public class Call {
          * Retrieve QtiImsInterface
          * Returns QtiImsInterface if available, null otherwise.
          */
-        public IQtiImsInterface getQtiImsInterface() {
+        public IQtiImsExt getQtiImsInterface() {
             return mImsServiceBound? mQtiImsInterface : null;
         }
     }
@@ -826,7 +826,7 @@ public class Call {
     public int getTransferCapabilities() {
         Bundle extras = getExtras();
         return (extras == null)? 0 :
-                extras.getInt(QtiImsInterfaceUtils.QTI_IMS_TRANSFER_EXTRA_KEY, 0);
+                extras.getInt(QtiImsExtUtils.QTI_IMS_TRANSFER_EXTRA_KEY, 0);
     }
 
     public boolean startQtiImsInterface(Context context) {
@@ -834,7 +834,7 @@ public class Call {
     }
 
     public boolean sendCallTransferRequest(int type, String number) {
-        IQtiImsInterface mInterface = mQtiImsInterfaceImpl.getQtiImsInterface();
+        IQtiImsExt mInterface = mQtiImsInterfaceImpl.getQtiImsInterface();
         if (mInterface == null) {
             Log.d(this, "sendCallTransferRequest: NO interface type-" + type +
                     " number: " + number);

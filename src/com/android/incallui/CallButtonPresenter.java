@@ -33,10 +33,10 @@ import com.android.incallui.InCallPresenter.InCallState;
 import com.android.incallui.InCallPresenter.InCallStateListener;
 import com.android.incallui.InCallPresenter.IncomingCallListener;
 import com.android.incallui.InCallPresenter.InCallDetailsListener;
-import org.codeaurora.ims.qtiims.QtiImsInterfaceUtils;
+import org.codeaurora.ims.utils.QtiImsExtUtils;
 
 import java.util.Objects;
-import org.codeaurora.QtiVideoCallConstants;
+import org.codeaurora.ims.QtiCallConstants;
 
 /**
  * Logic for call buttons.
@@ -353,13 +353,13 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
     public void callTransferClicked(int type) {
         String number = null;
         Context mContext = getUi().getContext();
-        if (type != QtiImsInterfaceUtils.QTI_IMS_CONSULTATIVE_TRANSFER) {
+        if (type != QtiImsExtUtils.QTI_IMS_CONSULTATIVE_TRANSFER) {
             /**
              * Since there are no editor options available to provide a number during
              * blind or assured transfer, for now, making use of the existing
              * call deflection editor to provide the required number.
              */
-            number = QtiImsInterfaceUtils.getCallDeflectNumber(mContext.getContentResolver());
+            number = QtiImsExtUtils.getCallDeflectNumber(mContext.getContentResolver());
             if (number == null) {
                  QtiCallUtils.displayToast(mContext, R.string.qti_ims_transfer_num_error);
                 return;
@@ -428,7 +428,7 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
 
         final boolean showMute = call.can(android.telecom.Call.Details.CAPABILITY_MUTE);
         final boolean showAddParticipant = call.can(
-                QtiVideoCallConstants.CAPABILITY_ADD_PARTICIPANT);
+                QtiCallConstants.CAPABILITY_ADD_PARTICIPANT);
 
         boolean showRxTx = false;
         boolean showRx = false;
