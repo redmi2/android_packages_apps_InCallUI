@@ -343,8 +343,14 @@ public class CallerInfo {
     }
 
     /* package */ CallerInfo markAsEmergency(Context context, String number) {
-        name = context.getString(R.string.emergency_call_dialog_number_for_display) + " "
+        number = PhoneNumberUtils.normalizeNumber(number);
+        if (context.getResources().getBoolean(R.bool.config_emergency_display)) {
+            name = context.getString(
+                R.string.emergency_call_dialog_number_for_display_operator);
+        } else {
+            name = context.getString(R.string.emergency_call_dialog_number_for_display) + " "
                 + number;
+        }
         phoneNumber = null;
 
         photoResource = R.drawable.img_phone;
