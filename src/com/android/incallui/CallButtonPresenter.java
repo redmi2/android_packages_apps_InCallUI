@@ -472,7 +472,7 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
         ui.showButton(BUTTON_PAUSE_VIDEO, isVideo && !useExt);
         ui.showButton(BUTTON_DIALPAD, !isVideo || useExt);
         ui.showButton(BUTTON_MERGE, showMerge);
-        ui.enableAddParticipant(showAddParticipant);
+        ui.showButton(BUTTON_ADD_PARTICIPANT, showAddParticipant);
         ui.showButton(BUTTON_RECORD, showRecord);
         if (ui.getContext().getResources().getBoolean(
                 R.bool.config_enable_enhance_video_call_ui)) {
@@ -480,9 +480,7 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
             ui.showButton(BUTTON_RXTX_VIDEO_CALL, showRxTx);
             ui.showButton(BUTTON_RX_VIDEO_CALL, showRx);
             ui.showButton(BUTTON_VO_VIDEO_CALL, showVolte);
-            ui.enableAddParticipant(false);
-        } else {
-            ui.enableAddParticipant(showAddParticipant);
+            ui.showButton(BUTTON_ADD_PARTICIPANT, false);
         }
         ui.enableCallTransfer(showCallTransfer);
         if (showCallTransfer != 0) {
@@ -529,7 +527,6 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
         void setHold(boolean on);
         void setCameraSwitched(boolean isBackFacingCamera);
         void setVideoPaused(boolean isPaused);
-        void enableAddParticipant(boolean show);
         void setAudio(int mode);
         void setSupportedAudio(int mask);
         void displayDialpad(boolean on, boolean animate);
