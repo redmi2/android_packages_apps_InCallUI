@@ -331,6 +331,7 @@ public class Call {
 
     public boolean mIsActiveSub = false;
     private android.telecom.Call mTelecommCall;
+    private VideoCall mVideoCall;
     private boolean mIsEmergencyCall;
     private Uri mHandle;
     private final String mId;
@@ -416,6 +417,7 @@ public class Call {
             }
             mTelecommCall.getVideoCall().registerCallback(mVideoCallCallback);
         }
+        mVideoCall = mTelecommCall.getVideoCall();
 
         mChildCallIds.clear();
         for (int i = 0; i < mTelecommCall.getChildren().size(); i++) {
@@ -701,7 +703,7 @@ public class Call {
     }
 
     public VideoCall getVideoCall() {
-        return mTelecommCall == null ? null : mTelecommCall.getVideoCall();
+        return mVideoCall;
     }
 
     public List<String> getChildCallIds() {
