@@ -33,7 +33,7 @@ import android.telephony.TelephonyManager;
 public class InCallServiceImpl extends InCallService {
 
     static TelephonyManager mTelephonyManager;
-    static int sPhoneCount;
+    static int sPhoneCount = TelephonyManager.getDefault().getPhoneCount();
 
     @Override
     public void onCallAudioStateChanged(CallAudioState audioState) {
