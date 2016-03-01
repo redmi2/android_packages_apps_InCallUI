@@ -27,6 +27,5 @@
   ~ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   -->
 <resources>
-    <!-- Determine whether emergency calls should be marked. -->
-    <bool name="mark_emergency_call">true</bool>
+
 </resources>
