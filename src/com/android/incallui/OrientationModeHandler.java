@@ -121,7 +121,7 @@ public class OrientationModeHandler implements InCallDetailsListener {
             return;
         }
 
-        InCallPresenter.getInstance().setInCallAllowsOrientationChange(
+        InCallPresenter.getInstance().setInCallAllowsOrientationChange(call,
                 QtiCallUtils.toUiOrientationMode(orientationMode));
     }
 

@@ -27,8 +27,6 @@
   ~ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   -->
 <resources>
-    <!-- Determine whether emergency calls should be marked. -->
-    <bool name="mark_emergency_call">true</bool>
     <!-- Config to show/hide Video quality toast -->
     <bool name="config_display_video_quality_toast">false</bool>
     <!-- Config to show/hide call session event toast like player start/stop -->

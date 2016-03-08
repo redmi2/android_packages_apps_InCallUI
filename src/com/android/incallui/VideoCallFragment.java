@@ -724,7 +724,7 @@ public class VideoCallFragment extends BaseFragment<VideoCallPresenter,
      */
     @Override
     public void setPreviewRotation(int orientation) {
-        Log.d(this, "setPreviewRotation: orientation=" + orientation);
+        Log.d(this, "setPreviewRotation: orientation = " + orientation);
         if (mPreviewVideoContainer != null) {
             mPreviewVideoContainer.setRotation(orientation);
         }
