@@ -41,9 +41,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.List;
 
 import com.android.incallui.InCallPresenter.InCallDetailsListener;
+import com.android.incallui.InCallPresenter.InCallUiListener;
 import org.codeaurora.ims.QtiCallConstants;
 
-public class InCallLowBatteryListener implements CallList.Listener, InCallDetailsListener {
+public class InCallLowBatteryListener implements CallList.Listener, InCallDetailsListener,
+        InCallUiListener {
 
     private static InCallLowBatteryListener sInCallLowBatteryListener;
     private PrimaryCallTracker mPrimaryCallTracker;
@@ -67,6 +69,7 @@ public class InCallLowBatteryListener implements CallList.Listener, InCallDetail
         InCallPresenter.getInstance().addListener(mPrimaryCallTracker);
         InCallPresenter.getInstance().addIncomingCallListener(mPrimaryCallTracker);
         InCallPresenter.getInstance().addDetailsListener(this);
+        InCallPresenter.getInstance().addInCallUiListener(this);
     }
 
     /**
@@ -80,6 +83,7 @@ public class InCallLowBatteryListener implements CallList.Listener, InCallDetail
         InCallPresenter.getInstance().removeListener(mPrimaryCallTracker);
         InCallPresenter.getInstance().removeIncomingCallListener(mPrimaryCallTracker);
         InCallPresenter.getInstance().removeDetailsListener(this);
+        InCallPresenter.getInstance().removeInCallUiListener(this);
         mPrimaryCallTracker = null;
     }
 
@@ -135,6 +139,29 @@ public class InCallLowBatteryListener implements CallList.Listener, InCallDetail
     }
 
     /**
+     * This API conveys if incall experience is showing or not.
+     *
+     * @param showing TRUE if incall experience is showing else FALSE
+     */
+    @Override
+    public void onUiShowing(boolean showing) {
+        Call call = mPrimaryCallTracker.getPrimaryCall();
+        Log.i(this, "onUiShowing showing: " + showing + "call = " + call);
+
+        if (!showing || call == null) {
+            return;
+        }
+
+        /*
+         * There can be chances to miss display of low battery alert dialog
+         * to user since incallactivity may be null. Eg of such a use-case is
+         * accepting Video call from heads-up notification. So, when incall
+         * experience is showing, handle missed low battery alert indications (if any)
+         */
+        maybeProcessLowBatteryIndication(call, call.getTelecommCall().getDetails());
+    }
+
+    /**
      * Handles changes to the details of the call.
      *
      * @param call The call for which the details changed.
@@ -149,10 +176,16 @@ public class InCallLowBatteryListener implements CallList.Listener, InCallDetail
             return;
         }
 
+        maybeProcessLowBatteryIndication(call, details);
+    }
+
+    private void maybeProcessLowBatteryIndication(Call call,
+            android.telecom.Call.Details details) {
+
         final Bundle extras =  (details != null) ? details.getExtras() : null;
         final boolean isLowBattery = (extras != null) ? extras.getBoolean(
                 QtiCallConstants.LOW_BATTERY_EXTRA_KEY, false) : false;
-        Log.i(this, "onDetailsChanged: isLowBattery : " + isLowBattery);
+        Log.i(this, "maybeProcessLowBatteryIndication: isLowBattery : " + isLowBattery);
 
         if (isLowBattery && updateCallInMap(call)) {
             processLowBatteryIndication(call);
@@ -190,6 +223,13 @@ public class InCallLowBatteryListener implements CallList.Listener, InCallDetail
                 mLowBatteryCalls.remove(call);
                 return false;
             }
+        } else if (InCallPresenter.getInstance().getActivity() == null) {
+            /*
+             * Displaying Low Battery alert dialog requires incallactivity context
+             * so return false if there is no incallactivity context
+             */
+            Log.i(this, "incallactivity is null");
+            return false;
         } else if (CallUtils.isActiveUnPausedVideoCall(call) && !isPresent
                 && call.getParentId() == null) {
             /*
