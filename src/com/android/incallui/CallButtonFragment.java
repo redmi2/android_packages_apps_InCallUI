@@ -812,6 +812,7 @@ public class CallButtonFragment
         mAudioButton.setEnabled(audioButtonEnabled && mIsEnabled);
         mAudioButton.setChecked(audioButtonChecked);
 
+        updateColors();
         final LayerDrawable layers = (LayerDrawable) mAudioButton.getBackground();
         Log.d(this, "'layers' drawable: " + layers);
 
