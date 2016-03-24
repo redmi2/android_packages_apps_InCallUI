@@ -31,6 +31,7 @@ package com.android.incallui;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import com.android.incallui.InCallPresenter.InCallDetailsListener;
+import com.android.incallui.InCallPresenter.InCallUiListener;
 import org.codeaurora.ims.QtiCallConstants;
 
 /**
@@ -40,7 +41,7 @@ import org.codeaurora.ims.QtiCallConstants;
  * on the activity to set the orientation mode for the device.
  *
  */
-public class OrientationModeHandler implements InCallDetailsListener {
+public class OrientationModeHandler implements InCallDetailsListener, InCallUiListener {
 
     private static OrientationModeHandler sOrientationModeHandler;
 
@@ -72,6 +73,7 @@ public class OrientationModeHandler implements InCallDetailsListener {
         mPrimaryCallTracker = new PrimaryCallTracker();
         InCallPresenter.getInstance().addListener(mPrimaryCallTracker);
         InCallPresenter.getInstance().addDetailsListener(this);
+        InCallPresenter.getInstance().addInCallUiListener(this);
     }
 
     /**
@@ -82,6 +84,8 @@ public class OrientationModeHandler implements InCallDetailsListener {
     public void tearDown() {
         InCallPresenter.getInstance().removeListener(mPrimaryCallTracker);
         InCallPresenter.getInstance().removeDetailsListener(this);
+        InCallPresenter.getInstance().removeInCallUiListener(this);
+        mOrientationMode = QtiCallConstants.ORIENTATION_MODE_UNSPECIFIED;
         mPrimaryCallTracker = null;
     }
 
@@ -93,11 +97,39 @@ public class OrientationModeHandler implements InCallDetailsListener {
     @Override
     public void onDetailsChanged(Call call, android.telecom.Call.Details details) {
         Log.d(this, "onDetailsChanged: - call: " + call + "details: " + details);
+        mayBeUpdateOrientationMode(call, details);
+    }
+
+    /**
+     * This API conveys if incall experience is showing or not.
+     *
+     * @param showing TRUE if incall experience is showing else FALSE
+     */
+    @Override
+    public void onUiShowing(boolean showing) {
+        Call call = mPrimaryCallTracker.getPrimaryCall();
+        Log.d(this, "onUiShowing showing: " + showing + " call = " + call);
+
+        if (!showing || call == null) {
+            return;
+        }
+
+        mayBeUpdateOrientationMode(call, call.getTelecommCall().getDetails());
+    }
+
+    private void mayBeUpdateOrientationMode(Call call, android.telecom.Call.Details details) {
         final Bundle extras =  (call != null && details != null) ? details.getExtras() : null;
         final int orientationMode = (extras != null) ? extras.getInt(
                 QtiCallConstants.ORIENTATION_MODE_EXTRA_KEY,
                 QtiCallConstants.ORIENTATION_MODE_UNSPECIFIED) :
                 QtiCallConstants.ORIENTATION_MODE_UNSPECIFIED;
+
+        Log.d(this, "mayBeUpdateOrientationMode : orientationMode: " + orientationMode +
+                " mOrientationMode : " + mOrientationMode);
+        if (InCallPresenter.getInstance().getActivity() == null) {
+            Log.w(this, "mayBeUpdateOrientationMode : InCallActivity is null");
+            return;
+        }
 
         if (orientationMode != mOrientationMode && orientationMode !=
                 QtiCallConstants.ORIENTATION_MODE_UNSPECIFIED) {

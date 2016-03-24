@@ -757,6 +757,9 @@ public class InCallPresenter implements CallList.Listener,
         Call call = mCallList.getIncomingCall();
         if (call != null) {
             TelecomAdapter.getInstance().answerCall(call.getId(), videoState);
+            if (CallUtils.isVideoCall(videoState)) {
+                showInCall(false, false/* newOutgoingCall */);
+            }
         }
     }
 
