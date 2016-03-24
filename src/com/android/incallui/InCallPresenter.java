@@ -1510,23 +1510,25 @@ public class InCallPresenter implements CallList.Listener,
         intent.putExtra("add_participant", true);
 
         Call call = mCallList.getActiveOrBackgroundCall();
-        List<String> childCallIdList = call.getChildCallIds();
-        if (childCallIdList != null) {
-            StringBuffer sb = new StringBuffer();
-            for (int k=0; k<childCallIdList.size(); k++) {
-                String tmp = childCallIdList.get(k);
-                String number = CallList.getInstance()
-                        .getCallById(tmp).getNumber();
-                if (number.contains(";")){
-                    String[] temp = number.split(";");
-                    number = temp[0];
+        if (call != null) {
+            List<String> childCallIdList = call.getChildCallIds();
+            if (childCallIdList != null) {
+                StringBuffer sb = new StringBuffer();
+                for (int k=0; k<childCallIdList.size(); k++) {
+                    String tmp = childCallIdList.get(k);
+                    String number = CallList.getInstance()
+                            .getCallById(tmp).getNumber();
+                    if (number.contains(";")){
+                        String[] temp = number.split(";");
+                        number = temp[0];
+                    }
+                    sb.append(number).append(";");
                 }
-                sb.append(number).append(";");
+                Log.d(this, "sendAddMultiParticipantsIntent, numbers " + sb.toString());
+                intent.putExtra("current_participant_list", sb.toString());
+            } else {
+                Log.e(this, "sendAddMultiParticipantsIntent, childCallIdList null.");
             }
-            Log.d(this, "sendAddMultiParticipantsIntent, numbers " + sb.toString());
-            intent.putExtra("current_participant_list", sb.toString());
-        } else {
-            Log.e(this, "sendAddMultiParticipantsIntent, childCallIdList null.");
         }
         try {
             mContext.startActivity(intent);
