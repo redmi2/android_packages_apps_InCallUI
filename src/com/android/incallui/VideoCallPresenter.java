@@ -574,6 +574,7 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
         } else if (isVideoCall) {
             Log.d(this, "onPrimaryCallChanged: Entering video mode...");
 
+            checkForOrientationAllowedChange(newPrimaryCall);
             updateCameraSelection(newPrimaryCall);
             enterVideoMode(newPrimaryCall);
         }
