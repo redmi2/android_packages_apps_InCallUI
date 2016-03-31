@@ -42,4 +42,6 @@
     <bool name="config_call_session_event_toast">true</bool>
     <!-- Config to show/hide data usage toast -->
     <bool name="config_display_data_usage_toast">true</bool>
+    <!-- Config to add participant only in conferencall call-->
+    <bool name="add_participant_only_in_conference">false</bool>
 </resources>

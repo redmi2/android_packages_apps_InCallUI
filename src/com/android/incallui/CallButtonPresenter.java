@@ -427,8 +427,12 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
                 || callState == Call.State.ONHOLD) && !call.isEmergencyCall();
 
         final boolean showMute = call.can(android.telecom.Call.Details.CAPABILITY_MUTE);
-        final boolean showAddParticipant = call.can(
+        boolean showAddParticipant = call.can(
                 QtiCallConstants.CAPABILITY_ADD_PARTICIPANT);
+        if (ui.getContext().getResources().getBoolean(
+            R.bool.add_participant_only_in_conference)) {
+            showAddParticipant = showAddParticipant&&(call.isConferenceCall());
+        }
 
         boolean showRxTx = false;
         boolean showRx = false;
