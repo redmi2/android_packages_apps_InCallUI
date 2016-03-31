@@ -699,34 +699,6 @@ public class VideoCallFragment extends BaseFragment<VideoCallPresenter,
                 containerParams.height = height;
                 mPreviewVideoContainer.setLayoutParams(containerParams);
             }
-
-            // The width and height are interchanged outside of this method based on the current
-            // orientation, so we can transform using "width", which will be either the width or
-            // the height.
-            Matrix transform = new Matrix();
-            transform.setScale(-1, 1, width/2, 0);
-            preview.setTransform(transform);
-        }
-    }
-
-    /**
-     * Sets the rotation of the preview surface.  Called when the dimensions change due to a
-     * device orientation change.
-     *
-     * Please note that the screen orientation passed in is subtracted from 360 to get the actual
-     * preview rotation values.
-     *
-     * @param rotation The screen orientation. One of -
-     * {@link InCallOrientationEventListener#SCREEN_ORIENTATION_0},
-     * {@link InCallOrientationEventListener#SCREEN_ORIENTATION_90},
-     * {@link InCallOrientationEventListener#SCREEN_ORIENTATION_180},
-     * {@link InCallOrientationEventListener#SCREEN_ORIENTATION_270}).
-     */
-    @Override
-    public void setPreviewRotation(int orientation) {
-        Log.d(this, "setPreviewRotation: orientation = " + orientation);
-        if (mPreviewVideoContainer != null) {
-            mPreviewVideoContainer.setRotation(orientation);
         }
     }
 
