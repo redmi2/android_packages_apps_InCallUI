@@ -149,4 +149,6 @@
     <!-- Text for the onscreen "consultative transfer" button -->
     <string name="qti_ims_onscreenConsultativeTransfer">Consultative Transfer</string>
 
+    <string name="emergency_call_dialog_number_for_display_operator">Emergency number</string>
+    <string name="config_sos_number" translatable="false">"xyz"</string>
 </resources>

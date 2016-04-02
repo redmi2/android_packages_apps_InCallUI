@@ -40,4 +40,8 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <!-- the international_idp array index that to be reconverted,
        -1:none-->
     <integer name="check_idp_reconvert_idx" translatable="false">-1</integer>
+
+    <!-- Determine whether emergency calls should be marked. -->
+    <bool name="config_emergency_display" translatable="false">false</bool>
+
 </resources>

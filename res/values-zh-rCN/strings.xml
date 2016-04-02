@@ -183,4 +183,11 @@
     <string name="rcs_greeting_string">问候语：</string>
     <string name="onscreenMoreMenuText">更多菜单</string>
     <string name="rcs_greeting_string">问候语：</string>
+    <string name="toast_video_call_upgrade">不能升级！</string>
+    <string name="onscreenAddParticipant">新增参与者</string>
+    <string name="modify_call_option_title">选择通话类型？</string>
+    <string name="modify_call_option_vt">双向视频</string>
+    <string name="modify_call_option_vt_rx">视频接收</string>
+    <string name="modify_call_option_vt_tx">视频发送</string>
+    <string name="modify_call_option_voice">仅限语音</string>
 </resources>
