@@ -512,4 +512,9 @@
     <string name="overflowBothCallMenuItemText">Video Call, show me</string>
     <string name="overflowRXCallMenuItemText">Video Call, hide me</string>
     <string name="overflowVOCallMenuItemText">Voice Call</string>
+
+    <!-- VoWifi call quality indicators -->
+    <string name="vowifi_call_quality_good">Good Voice quality</string>
+    <string name="vowifi_call_quality_fair">Fair Voice quality</string>
+    <string name="vowifi_call_quality_poor">Poor Voice quality</string>
 </resources>
