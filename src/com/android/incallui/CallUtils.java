@@ -28,6 +28,7 @@
 
 package com.android.incallui;
 
+import android.content.Context;
 import android.telecom.VideoProfile;
 
 import com.google.common.base.Preconditions;
@@ -96,4 +97,15 @@ public class CallUtils {
         return videoState | VideoProfile.STATE_PAUSED;
     }
 
+    /**
+     * if true, it need preview before the receiver handle the request to modify call
+     */
+    public static boolean isModifyCallPreview(Context ctx, Call call) {
+        if (call == null) {
+            return false;
+        }
+        return (call.getSessionModificationState() ==
+                Call.SessionModificationState.WAITING_FOR_RESPONSE) &&
+               VideoProfile.isTransmissionEnabled(call.getModifyToVideoState());
+    }
 }

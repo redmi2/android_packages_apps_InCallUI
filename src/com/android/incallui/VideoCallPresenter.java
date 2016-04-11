@@ -71,7 +71,8 @@ import org.codeaurora.ims.QtiCallConstants;
 public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi> implements
         IncomingCallListener, InCallOrientationListener, InCallStateListener,
         InCallDetailsListener, SurfaceChangeListener, VideoEventListener,
-        InCallPresenter.InCallEventListener, InCallUiStateNotifierListener {
+        InCallPresenter.InCallEventListener, InCallUiStateNotifierListener,
+        CallList.CallUpdateListener {
     public static final String TAG = "VideoCallPresenter";
 
     public static final boolean DEBUG = false;
@@ -499,14 +500,19 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
     }
 
     private void checkForVideoStateChange(Call call) {
-        final boolean isVideoCall = CallUtils.isVideoCall(call);
-        final boolean hasVideoStateChanged = mCurrentVideoState != call.getVideoState();
+        boolean isVideoCall = CallUtils.isVideoCall(call);
+        boolean hasVideoStateChanged = mCurrentVideoState != call.getVideoState();
 
         Log.d(this, "checkForVideoStateChange: isVideoCall= " + isVideoCall
                 + " hasVideoStateChanged=" + hasVideoStateChanged + " isVideoMode="
                 + isVideoMode() + " previousVideoState: " +
                 VideoProfile.videoStateToString(mCurrentVideoState) + " newVideoState: "
                 + VideoProfile.videoStateToString(call.getVideoState()));
+
+        if (CallUtils.isModifyCallPreview(mContext, call)) {
+            isVideoCall |= CallUtils.isVideoCall(call.getModifyToVideoState());
+            hasVideoStateChanged |= mCurrentVideoState != call.getModifyToVideoState();
+         }
 
         if (!hasVideoStateChanged) {
             return;
@@ -566,6 +572,7 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
         Log.d(this, "onPrimaryCallChanged: isVideoCall=" + isVideoCall + " isVideoMode="
                 + isVideoMode);
 
+        listenToCallUpdates(newPrimaryCall);
         if (!isVideoCall && isVideoMode) {
             // Terminate video mode if new primary call is not a video call
             // and we are currently in video mode.
@@ -696,12 +703,16 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
     private void enterVideoMode(Call call) {
         VideoCall videoCall = call.getVideoCall();
         int newVideoState = call.getVideoState();
-
         Log.d(this, "enterVideoMode videoCall= " + videoCall + " videoState: " + newVideoState);
         VideoCallUi ui = getUi();
         if (ui == null) {
             Log.e(this, "Error VideoCallUi is null so returning");
             return;
+        }
+        if (CallUtils.isModifyCallPreview(mContext, call)) {
+           Log.d(this, "modifying video state = " + newVideoState +
+                " to video state: " + call.getModifyToVideoState());
+           newVideoState = call.getModifyToVideoState();
         }
 
         showVideoUi(newVideoState, call.getState());
@@ -1236,7 +1247,7 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
         return ((audioRoute & audioRouteMask) != 0);
     }
 
-    private static void updateCameraSelection(Call call) {
+    private void updateCameraSelection(Call call) {
         Log.d(TAG, "updateCameraSelection: call=" + call);
         Log.d(TAG, "updateCameraSelection: call=" + toSimpleString(call));
 
@@ -1249,6 +1260,12 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
             cameraDir = Call.VideoSettings.CAMERA_DIRECTION_UNKNOWN;
             com.android.incallui.Log.e(TAG, "updateCameraSelection: Call object is null."
                     + " Setting camera direction to default value (CAMERA_DIRECTION_UNKNOWN)");
+        }
+
+        // for preview scenario if it is supported
+        else if(CallUtils.isModifyCallPreview(mContext, call)) {
+            cameraDir = toCameraDirection(call.getModifyToVideoState());
+            call.getVideoSettings().setCameraDir(cameraDir);
         }
 
         // Clear camera direction if this is not a video call.
@@ -1415,5 +1432,56 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
         ImageView getPreviewPhotoView();
         void adjustPreviewLocation(boolean shiftUp, int offset);
         void setPreviewRotation(int orientation);
+    }
+
+    private void listenToCallUpdates(Call call) {
+        if (!QtiCallUtils.shallShowPreviewWhileWaiting(mContext)) return;
+
+        if (mPrimaryCall != null) {
+            CallList.getInstance().removeCallUpdateListener(mPrimaryCall.getId(), this);
+        }
+
+        if (call != null) {
+            CallList.getInstance().addCallUpdateListener(call.getId(), this);
+        }
+    }
+
+    @Override
+    public void onSessionModificationStateChange(Call call, int sessionModificationState) {
+        Log.d(this, "onSessionModificationStateChange : sessionModificationState = " +
+                sessionModificationState + " call:" + call);
+        if (call != mPrimaryCall ||
+                (sessionModificationState == Call.SessionModificationState.NO_REQUEST ||
+                 sessionModificationState
+                == Call.SessionModificationState.UPGRADE_TO_VIDEO_REQUEST_TIMED_OUT)) {
+            return;
+        }
+        if (!VideoProfile.isTransmissionEnabled(call.getModifyToVideoState())) {
+           call.setModifyToVideoState(VideoProfile.STATE_AUDIO_ONLY);
+           return;
+        }
+
+        if (sessionModificationState != Call.SessionModificationState.WAITING_FOR_RESPONSE) {
+            call.setModifyToVideoState(VideoProfile.STATE_AUDIO_ONLY);
+        }
+
+        checkForVideoStateChange(call);
+
+        if (sessionModificationState == Call.SessionModificationState.REQUEST_REJECTED
+                || sessionModificationState == Call.SessionModificationState.REQUEST_FAILED) {
+             mCurrentVideoState = call.getVideoState();
+        }
+    }
+
+    @Override
+    public void onLastForwardedNumberChange() {
+    }
+
+    @Override
+    public void onCallChanged(Call call) {
+    }
+
+    @Override
+    public void onChildNumberChange() {
     }
 }
