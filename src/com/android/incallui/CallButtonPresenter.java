@@ -33,6 +33,7 @@ import com.android.incallui.InCallPresenter.InCallState;
 import com.android.incallui.InCallPresenter.InCallStateListener;
 import com.android.incallui.InCallPresenter.IncomingCallListener;
 import com.android.incallui.InCallPresenter.InCallDetailsListener;
+import com.android.internal.telephony.CarrierAppUtils;
 import org.codeaurora.ims.utils.QtiImsExtUtils;
 
 import java.util.Objects;
@@ -252,11 +253,15 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
     }
 
     public void addCallClicked() {
-        // Automatically mute the current call
-        mAutomaticallyMuted = true;
-        mPreviousMuteState = AudioModeProvider.getInstance().getMute();
-        // Simulate a click on the mute button
-        muteClicked(true);
+        CarrierAppUtils.CARRIER carrier = CarrierAppUtils.getCarrierId();
+        if (carrier != null && (CarrierAppUtils.CARRIER.TELEPHONY_CARRIER_ONE
+                != carrier)) {
+            // Automatically mute the current call
+            mAutomaticallyMuted = true;
+            mPreviousMuteState = AudioModeProvider.getInstance().getMute();
+            // Simulate a click on the mute button
+            muteClicked(true);
+        }
         TelecomAdapter.getInstance().addCall();
     }
 
