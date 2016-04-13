@@ -49,6 +49,7 @@ import java.util.Objects;
 
 import org.codeaurora.ims.internal.IQtiImsExt;
 import org.codeaurora.ims.internal.IQtiImsExtListener;
+import org.codeaurora.ims.QtiCallConstants;
 import org.codeaurora.ims.QtiImsExtListenerBaseImpl;
 import org.codeaurora.ims.utils.QtiImsExtUtils;
 
@@ -853,6 +854,13 @@ public class Call {
             return false;
         }
         return true;
+    }
+
+    public int getWifiQuality() {
+        Bundle extras = getExtras();
+        return (extras == null)? QtiCallConstants.VOWIFI_QUALITY_NONE :
+                extras.getInt(QtiCallConstants.VOWIFI_CALL_QUALITY_EXTRA_KEY,
+                QtiCallConstants.VOWIFI_QUALITY_NONE);
     }
 
     @Override
