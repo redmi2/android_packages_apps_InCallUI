@@ -1109,17 +1109,7 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
         if (previewDimensions == null) {
             return;
         }
-        final int currMode = OrientationModeHandler.getInstance().getCurrentOrientationMode();
-        final boolean isCvoEnabled = (currMode != QtiCallConstants.ORIENTATION_MODE_PORTRAIT &&
-                currMode != QtiCallConstants.ORIENTATION_MODE_LANDSCAPE) ? true : false;
-
-        Log.i(this, "onDeviceOrientationChanged: orientation=" + orientation + " size: "
-                + previewDimensions + "currMode: " + currMode);
-        if (isCvoEnabled) {
-            changePreviewDimensions(previewDimensions.x, previewDimensions.y);
-        }
-
-        ui.setPreviewRotation(isCvoEnabled ? (mDeviceOrientation) : (2 * mDeviceOrientation));
+        changePreviewDimensions(previewDimensions.x, previewDimensions.y);
     }
 
     /**
@@ -1138,15 +1128,29 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
             return;
         }
 
-        final int adjustedDimension = (int) (mMinimumVideoDimension * aspectRatio);
+        // Multiplying the aspect ratio to increase width/height based on orientation.
+        // Here we are making sure the factor for multiply always greater than 1 to keep
+        // the width/height always greater than minimum preview dimension
+        final float factorForMultiply = (aspectRatio > 1)? aspectRatio: (1 / aspectRatio);
+        final int adjustedDimension = (int) (mMinimumVideoDimension * factorForMultiply);
         final int min = (int) Math.min(mMinimumVideoDimension, adjustedDimension);
         final int max = (int) Math.max(mMinimumVideoDimension, adjustedDimension);
 
-        // When orientation is dynamic (CVO), we dynamically rotate the camera preview, hence
-        // here we make sure that the height of the preview is always greater than the width.
-        int height = max;
-        int width = min;
+        int height;
+        int width;
 
+        if (orientation == InCallOrientationEventListener.SCREEN_ORIENTATION_90 ||
+                orientation == InCallOrientationEventListener.SCREEN_ORIENTATION_270) {
+            width = max;
+            height = min;
+        } else {
+            // Portrait or reverse portrait orientation.
+            width = min;
+            height = max;
+        }
+        Log.i("VideoCallPresenter", "IMS: Aspect Ratio :" + aspectRatio
+                        + " width : " + width
+                        + " height : " + height);
         ui.setPreviewSize(width, height);
     }
 
@@ -1431,7 +1435,6 @@ public class VideoCallPresenter extends Presenter<VideoCallPresenter.VideoCallUi
         void cleanupSurfaces();
         ImageView getPreviewPhotoView();
         void adjustPreviewLocation(boolean shiftUp, int offset);
-        void setPreviewRotation(int orientation);
     }
 
     private void listenToCallUpdates(Call call) {
