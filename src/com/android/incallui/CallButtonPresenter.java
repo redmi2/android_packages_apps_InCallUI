@@ -294,11 +294,18 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
         }
         int currVideoState = mCall.getVideoState();
         int currUnpausedVideoState = CallUtils.getUnPausedVideoState(currVideoState);
-        currUnpausedVideoState |= VideoProfile.STATE_BIDIRECTIONAL;
 
-        VideoProfile videoProfile = new VideoProfile(currUnpausedVideoState);
-        videoCall.sendSessionModifyRequest(videoProfile);
-        mCall.setSessionModificationState(Call.SessionModificationState.WAITING_FOR_RESPONSE);
+        if (VideoProfile.isAudioOnly(currVideoState)) {
+            //if is a audio call, send bidirectional modify request
+            currUnpausedVideoState |= VideoProfile.STATE_BIDIRECTIONAL;
+
+            VideoProfile videoProfile = new VideoProfile(currUnpausedVideoState);
+            videoCall.sendSessionModifyRequest(videoProfile);
+            mCall.setSessionModificationState(Call.SessionModificationState.WAITING_FOR_RESPONSE);
+        } else if (CallUtils.isVideoCall(currVideoState)) {
+            //if call is a video call, send audio only modify request
+            changeToVoiceClicked();
+        }
     }
 
     /**
@@ -419,11 +426,13 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
         final boolean isCallOnHold = call.getState() == Call.State.ONHOLD;
 
         final boolean useExt = QtiCallUtils.useExt(ui.getContext());
+        final boolean useCustomVideoUi =
+                QtiCallUtils.useCustomVideoUi(ui.getContext());
         final boolean showAddCall = TelecomAdapter.getInstance().canAddCall();
         final boolean showMerge = call.can(
                 android.telecom.Call.Details.CAPABILITY_MERGE_CONFERENCE);
         final int callState = call.getState();
-        final boolean showUpgradeToVideo = (!isVideo || useExt) &&
+        final boolean showUpgradeToVideo = (!isVideo || useExt || useCustomVideoUi) &&
                 (QtiCallUtils.hasVideoCapabilities(call) ||
                 QtiCallUtils.hasVoiceCapabilities(call)) &&
                 (callState == Call.State.ACTIVE || callState == Call.State.ONHOLD);
@@ -478,11 +487,13 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
             ui.showButton(BUTTON_UPGRADE_TO_VIDEO, showUpgradeToVideo);
         }
         ui.showButton(BUTTON_SWITCH_CAMERA, isVideo);
-        ui.showButton(BUTTON_PAUSE_VIDEO, isVideo && !useExt);
-        ui.showButton(BUTTON_DIALPAD, !isVideo || useExt);
+        ui.showButton(BUTTON_PAUSE_VIDEO, isVideo && !useExt && !useCustomVideoUi);
+        ui.showButton(BUTTON_DIALPAD, !isVideo || useExt || useCustomVideoUi);
         ui.showButton(BUTTON_MERGE, showMerge);
         ui.showButton(BUTTON_ADD_PARTICIPANT, showAddParticipant);
-        ui.showButton(BUTTON_RECORD, showRecord);
+        if (ui.getContext().getResources().getBoolean(R.bool.enable_call_record)) {
+            ui.showButton(BUTTON_RECORD, showRecord);
+        }
         if (ui.getContext().getResources().getBoolean(
                 R.bool.config_enable_enhance_video_call_ui)) {
             Log.v(this, "Add three new buttons");
